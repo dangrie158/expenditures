@@ -16,7 +16,7 @@ class Home extends React.Component {
     showModal: false,
     newItem: new Expenditure(),
     userName: this.getUsername(),
-    userNameIsSet: this.getUsername() !== undefined,
+    userNameIsSet: this.getUsername() !== "",
     balance: 0
   }
 
