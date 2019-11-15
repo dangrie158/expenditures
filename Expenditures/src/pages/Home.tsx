@@ -1,7 +1,8 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
+import { add } from 'ionicons/icons';
 
 class Expenditure {
   username: string = "n/a"
@@ -39,6 +40,7 @@ class Home extends React.Component {
         const data = this.state.expenditures.filter(i => i.id !== item.id)
 
         this.setState({ expenditures: data })
+        this.doRefresh();
       })
       .catch(console.log)
   }
@@ -86,24 +88,24 @@ class Home extends React.Component {
       })
       .catch(console.log)
 
-      fetch('/api/current-status')
-        .then(res => res.json())
-        .then((data) => {
-          let myBalance = data.find((item: any) => item[0] === this.state.userName)
-          let otherBalance = data.find((item: any) => item[0] !== this.state.userName)
-          let balance = myBalance[1] - otherBalance[1]
-          this.setState({
-            balance: balance / 100
-          })
+    fetch('/api/current-status')
+      .then(res => res.json())
+      .then((data) => {
+        let myBalance = data.find((item: any) => item[0] === this.state.userName)
+        let otherBalance = data.find((item: any) => item[0] !== this.state.userName)
+        let balance = myBalance[1] - otherBalance[1]
+        this.setState({
+          balance: balance / 100
         })
-        .catch(console.log)
+      })
+      .catch(console.log)
   }
 
   handleChangeAmount(event: CustomEvent<InputChangeEventDetail>) {
     this.setState({
       newItem: {
         reason: this.state.newItem.reason,
-        amount: event.detail.value
+        amount: (event.detail.value || '0').replace(',', '.')
       }
     });
   }
@@ -149,7 +151,7 @@ class Home extends React.Component {
             <IonLabel slot="end" color={this.state.balance < 0 ? "warning" : "success"}>{this.state.balance} €</IonLabel>
           </IonToolbar>
         </IonHeader>
-        <IonContent className="ion-padding">
+        <IonContent fullscreen className="ion-padding">
           <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
@@ -159,7 +161,7 @@ class Home extends React.Component {
                 <IonItem>
                   <IonLabel>{expenditure.reason}</IonLabel>
                   <IonLabel>{expenditure.username}</IonLabel>
-                  <IonLabel slot="end" color="success">{expenditure.amount}€</IonLabel>
+                  <IonLabel slot="end" color="success">{expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonLabel>
                 </IonItem>
                 <IonItemOptions side="end">
                   <IonItemOption color="danger" onClick={() => {
@@ -171,31 +173,51 @@ class Home extends React.Component {
           </IonList>
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
             <IonFabButton onClick={() => this.setState({ showModal: true })}>
-              <IonIcon name="add" />
+              <IonIcon icon={add} />
             </IonFabButton>
           </IonFab>
         </IonContent>
         <IonModal isOpen={this.state.showModal}>
           <form onSubmit={this.handleSubmit}>
-            <IonItem>
-              <IonLabel>Betrag</IonLabel>
-              <IonInput inputMode="decimal" pattern="^[0-9]+(\.[0-9]{1,2})?$" required={true} onIonChange={this.handleChangeAmount} placeholder="0.00"></IonInput> €
-          </IonItem>
-            <IonItem>
-              <IonLabel>Grund</IonLabel>
-              <IonInput required={true} onIonChange={this.handleChangeReason} placeholder="Shop oder Zweck"></IonInput>
-            </IonItem>
-            <IonButton color="primary" type="submit">Speichern</IonButton>
-            <IonButton color="light" onClick={() => this.setState({ showModal: false })}>Abbrechen</IonButton>
+            <IonHeader translucent>
+              <IonToolbar>
+                <IonTitle>Ausgabe eintragen</IonTitle>
+                <IonButtons slot="start">
+                  <IonButton onClick={() => this.setState({ showModal: false })}>Abbrechen</IonButton>
+                </IonButtons>
+                <IonButtons slot="end">
+                  <IonButton color="primary" type="submit">Speichern</IonButton>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonContent fullscreen>
+              <IonItem>
+                <IonLabel>Betrag</IonLabel>
+                <IonInput inputMode="decimal" pattern="^[0-9]+([\.,][0-9]{1,2})?$" required={true} onIonChange={this.handleChangeAmount} placeholder="0.00"></IonInput> €
+              </IonItem>
+              <IonItem>
+                <IonLabel>Grund</IonLabel>
+                <IonInput required={true} onIonChange={this.handleChangeReason} placeholder="Shop oder Zweck"></IonInput>
+              </IonItem>
+            </IonContent>
           </form>
         </IonModal>
         <IonModal isOpen={!this.state.userNameIsSet}>
           <form onSubmit={this.handleSubmitUsername}>
-            <IonItem>
-              <IonLabel>Nutzer</IonLabel>
-              <IonInput required={true} onIonChange={this.handleChangeUsername}></IonInput>
-            </IonItem>
-            <IonButton color="primary" type="submit">Speichern</IonButton>
+            <IonHeader translucent>
+              <IonToolbar>
+                <IonTitle>Nutzer eintragen</IonTitle>
+                <IonButtons slot="end">
+                  <IonButton color="primary" type="submit">Speichern</IonButton>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonContent fullscreen>
+              <IonItem>
+                <IonLabel>Nutzer</IonLabel>
+                <IonInput required={true} onIonChange={this.handleChangeUsername}></IonInput>
+              </IonItem>
+            </IonContent>
           </form>
         </IonModal>
       </IonPage>
