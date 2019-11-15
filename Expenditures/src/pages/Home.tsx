@@ -34,7 +34,7 @@ class Home extends React.Component {
   }
 
   deleteExpenditure(item: Expenditure) {
-    fetch(`http://localhost:5000/api/expenditures/${item.id}`, { method: 'DELETE' })
+    fetch(`/api/expenditures/${item.id}`, { method: 'DELETE' })
       .then((_: Object) => {
         const data = this.state.expenditures.filter(i => i.id !== item.id)
 
@@ -49,7 +49,7 @@ class Home extends React.Component {
       reason: item.reason,
       username: item.username
     }
-    return fetch(`http://localhost:5000/api/expenditures`, {
+    return fetch(`/api/expenditures`, {
       method: 'POST',
       headers: {
         "Content-type": "application/json"
@@ -71,7 +71,7 @@ class Home extends React.Component {
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    fetch('http://localhost:5000/api/expenditures?limit=20')
+    fetch('/api/expenditures?limit=20')
       .then(res => res.json())
       .then((data) => {
         this.setState({
@@ -86,7 +86,7 @@ class Home extends React.Component {
       })
       .catch(console.log)
 
-      fetch('http://localhost:5000/api/current-status')
+      fetch('/api/current-status')
         .then(res => res.json())
         .then((data) => {
           let myBalance = data.find((item: any) => item[0] === this.state.userName)
