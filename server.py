@@ -90,4 +90,4 @@ def send_static(path):
     return app.send_static_file('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
