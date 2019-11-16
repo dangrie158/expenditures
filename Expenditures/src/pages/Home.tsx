@@ -73,11 +73,15 @@ class Home extends React.Component {
   }
 
   saveUsername(username: string) {
-    document.cookie = `username=${username}`;
+    let expiry = new Date();
+    document.cookie = `username=${username}; expires=${expiry.toUTCString()}`;
   }
 
   getUsername() {
     let userName = document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
+    //renew cookie
+    this.saveUsername(userName);
+
     return userName
   }
 
