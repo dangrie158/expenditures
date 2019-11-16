@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonListHeader, IonSelect, IonSelectOption } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
@@ -18,6 +18,7 @@ class Home extends React.Component {
     newItem: new Expenditure(),
     userName: this.getUsername(),
     userNameIsSet: this.getUsername() !== "",
+    availableUserNames: Array<string>(),
     balance: 0
   }
 
@@ -26,11 +27,18 @@ class Home extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChangeAmount = this.handleChangeAmount.bind(this);
     this.handleChangeReason = this.handleChangeReason.bind(this);
+    this.handleChangeUser = this.handleChangeUser.bind(this);
     this.handleSubmitUsername = this.handleSubmitUsername.bind(this);
     this.handleChangeUsername = this.handleChangeUsername.bind(this);
   }
 
   componentDidMount() {
+    this.setState({
+      newItem: {
+        ...this.state.newItem,
+        username: this.state.userName
+      }
+    })
     this.doRefresh()
   }
 
@@ -69,7 +77,8 @@ class Home extends React.Component {
   }
 
   getUsername() {
-    return document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
+    let userName = document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
+    return userName
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
@@ -91,21 +100,29 @@ class Home extends React.Component {
     fetch('/api/current-status')
       .then(res => res.json())
       .then((data) => {
+        console.log(data)
+        this.setState({
+          availableUserNames: data.map((item: Array<string>) => item[0])
+        })
+        return data
+      })
+      .then((data) => {
         let myBalance = data.find((item: any) => item[0] === this.state.userName)
         let otherBalance = data.find((item: any) => item[0] !== this.state.userName)
         let balance = myBalance[1] - otherBalance[1]
         this.setState({
           balance: balance / 100
         })
+        return data
       })
       .catch(console.log)
   }
 
   handleChangeAmount(event: CustomEvent<InputChangeEventDetail>) {
     this.setState({
-      newItem: {
-        reason: this.state.newItem.reason,
-        amount: (event.detail.value || '0').replace(',', '.')
+      newItem: { 
+        ...this.state.newItem,
+        amount: (event.detail.value || '0').replace(',', '.'),
       }
     });
   }
@@ -113,8 +130,18 @@ class Home extends React.Component {
   handleChangeReason(event: CustomEvent<InputChangeEventDetail>) {
     this.setState({
       newItem: {
-        amount: this.state.newItem.amount,
-        reason: event.detail.value
+        ...this.state.newItem,
+        reason: event.detail.value,
+      }
+    });
+  }
+
+  handleChangeUser(event: CustomEvent<InputChangeEventDetail>) {
+    console.log(this.state)
+    this.setState({
+      newItem: {
+        ...this.state.newItem,
+        username: event.detail.value
       }
     });
   }
@@ -128,7 +155,6 @@ class Home extends React.Component {
   handleSubmit(event: FormEvent) {
     event.preventDefault();
     let newItem = this.state.newItem
-    newItem.username = this.state.userName
     this.addExpenditure(newItem)
       .then(() =>
         this.setState({ showModal: false })
@@ -148,7 +174,7 @@ class Home extends React.Component {
           <IonToolbar>
             <IonTitle>Letzte Ausgaben</IonTitle>
             <IonLabel slot="end">Status:</IonLabel>
-            <IonLabel slot="end" color={this.state.balance < 0 ? "warning" : "success"}>{this.state.balance} €</IonLabel>
+            <IonLabel slot="end" color={this.state.balance < 0 ? "warning" : "success"}>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonLabel>
           </IonToolbar>
         </IonHeader>
         <IonContent fullscreen className="ion-padding">
@@ -199,6 +225,18 @@ class Home extends React.Component {
                 <IonLabel>Grund</IonLabel>
                 <IonInput required={true} onIonChange={this.handleChangeReason} placeholder="Shop oder Zweck"></IonInput>
               </IonItem>
+              <IonItem>
+                <IonLabel>Gezahlt von</IonLabel>
+                <IonSelect onIonChange={this.handleChangeUser}>
+                  {this.state.availableUserNames.map((name) => {
+                    return (
+                      <IonSelectOption selected={name === this.state.newItem.username} key={name} value={name}>
+                        {name}
+                      </IonSelectOption>
+                    );
+                  })}
+                </IonSelect>
+              </IonItem>
             </IonContent>
           </form>
         </IonModal>
@@ -220,7 +258,7 @@ class Home extends React.Component {
             </IonContent>
           </form>
         </IonModal>
-      </IonPage>
+      </IonPage >
     );
   }
 }

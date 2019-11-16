@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
-from sqlalchemy import func
+from sqlalchemy import func, event
 import os
 import datetime
 
@@ -33,6 +33,13 @@ class Expenditure(db.Model):
         self.amount = amount
         self.reason = reason
 
+    @staticmethod
+    def insert_initial_values(*args, **kwargs):
+        db.session.add(Expenditure(username='Dani', amount=0, reason="Übertrag"))
+        db.session.add(Expenditure(username='Cram', amount=0, reason="Übertrag"))
+        db.session.commit()
+
+event.listen(Expenditure.__table__, 'after_create', Expenditure.insert_initial_values)
 
 class ExpendituresSchema(ma.Schema):
     class Meta:
