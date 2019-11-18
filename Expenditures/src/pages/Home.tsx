@@ -19,7 +19,8 @@ class Home extends React.Component {
     userName: this.getUsername(),
     userNameIsSet: this.getUsername() !== "",
     availableUserNames: Array<string>(),
-    balance: 0
+    balance: 0,
+    isSaving: false
   }
 
   constructor(props: any) {
@@ -59,6 +60,9 @@ class Home extends React.Component {
       reason: item.reason,
       username: item.username
     }
+
+    this.setState({ isSaving: true });
+
     return fetch(`/api/expenditures`, {
       method: 'POST',
       headers: {
@@ -66,10 +70,16 @@ class Home extends React.Component {
       },
       body: JSON.stringify(newItem)
     })
-      .then((_: Object) => {
-        this.doRefresh()
+      .then(() => {
+        this.doRefresh();
       })
-      .catch(console.log)
+      .catch((e) => {
+        console.log(e);
+        alert("Speichern fehlgeschlagen");
+      })
+      .finally(() => {
+        this.setState({ showModal: false, isSaving: false });
+      });
   }
 
   saveUsername(username: string) {
@@ -161,10 +171,7 @@ class Home extends React.Component {
   handleSubmit(event: FormEvent) {
     event.preventDefault();
     let newItem = this.state.newItem
-    this.addExpenditure(newItem)
-      .then(() =>
-        this.setState({ showModal: false })
-      )
+    this.addExpenditure(newItem);
   }
 
   handleSubmitUsername(event: FormEvent) {
@@ -179,8 +186,12 @@ class Home extends React.Component {
         <IonHeader>
           <IonToolbar>
             <IonTitle>Letzte Ausgaben</IonTitle>
-            <IonLabel slot="end">Status:</IonLabel>
-            <IonLabel slot="end" color={this.state.balance < 0 ? "warning" : "success"}>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonLabel>
+            <IonItem slot="end">
+              <IonLabel position="fixed" color={this.state.balance < 0 ? "warning" : "success"}>
+                <p>Status:</p>
+                <p>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</p>
+              </IonLabel>
+            </IonItem>
           </IonToolbar>
         </IonHeader>
         <IonContent fullscreen className="ion-padding">
@@ -191,9 +202,13 @@ class Home extends React.Component {
             {this.state.expenditures.map((expenditure) => (
               <IonItemSliding key={expenditure.id.toString()}>
                 <IonItem>
-                  <IonLabel>{expenditure.reason}</IonLabel>
-                  <IonLabel>{expenditure.username}</IonLabel>
-                  <IonLabel slot="end" color="success">{expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonLabel>
+                  <IonLabel position="fixed">
+                    {expenditure.reason}
+                    <p>{expenditure.username}</p>
+                  </IonLabel>
+                  <IonLabel slot="end" color="success" position="fixed">
+                    {expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+                  </IonLabel>
                 </IonItem>
                 <IonItemOptions side="end">
                   <IonItemOption color="danger" onClick={() => {
@@ -218,7 +233,7 @@ class Home extends React.Component {
                   <IonButton onClick={() => this.setState({ showModal: false })}>Abbrechen</IonButton>
                 </IonButtons>
                 <IonButtons slot="end">
-                  <IonButton color="primary" type="submit">Speichern</IonButton>
+                  <IonButton color="primary" type="submit" disabled={this.state.isSaving}>Speichern</IonButton>
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
