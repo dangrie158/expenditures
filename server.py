@@ -86,6 +86,7 @@ class ExpendituresSchema(ma.Schema):
         fields = ('id', 'username', 'amount', 'reason', 'created_date', 'tags')
 
 
+tags_schema = TagShema(many=True)
 expenditure_schema = ExpendituresSchema()
 expenditures_schema = ExpendituresSchema(many=True)
 
@@ -117,6 +118,15 @@ def get_expenditure():
     else:
         all_expenditures = Expenditure.query.all()
     result = expenditures_schema.dump(all_expenditures)
+    return jsonify(result)
+
+# endpoint to show all tags
+
+
+@app.route("/api/tags", methods=["GET"])
+def get_tags():
+    all_tags = Tag.query.all()
+    result = tags_schema.dump(all_tags)
     return jsonify(result)
 
 # endpoint to delete expenditure

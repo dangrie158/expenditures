@@ -1,14 +1,15 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonListHeader, IonSelect, IonSelectOption } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonListHeader, IonSelect, IonSelectOption, IonChip } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
-import { add } from 'ionicons/icons';
+import { add, checkmarkCircleOutline, } from 'ionicons/icons';
 
 class Expenditure {
   username: string = "n/a"
   amount: number = 0
   reason: string = "n/a"
   id: number = -1
+  tags: Array<{ name: string }> = []
 }
 
 class Home extends React.Component {
@@ -19,6 +20,7 @@ class Home extends React.Component {
     userName: this.getUsername(),
     userNameIsSet: this.getUsername() !== "",
     availableUserNames: Array<string>(),
+    tags: Array<{ name: string }>(),
     balance: 0,
     isSaving: false
   }
@@ -58,7 +60,8 @@ class Home extends React.Component {
     let newItem = {
       amount: (item.amount * 100).toFixed(0),
       reason: item.reason,
-      username: item.username
+      username: item.username,
+      tags: item.tags
     }
 
     this.setState({ isSaving: true });
@@ -84,7 +87,7 @@ class Home extends React.Component {
 
   saveUsername(username: string) {
     let expiry = new Date();
-    expiry.setTime(expiry.getTime() + (2*356*24*60*60*1000)); 
+    expiry.setTime(expiry.getTime() + (2 * 356 * 24 * 60 * 60 * 1000));
     document.cookie = `username=${username}; expires=${expiry.toUTCString()}`;
   }
 
@@ -113,6 +116,15 @@ class Home extends React.Component {
       })
       .catch(console.log)
 
+    fetch('/api/tags')
+      .then(res => res.json())
+      .then((data) => {
+        this.setState({
+          tags: data
+        })
+      })
+      .catch(console.log)
+
     fetch('/api/current-status')
       .then(res => res.json())
       .then((data) => {
@@ -136,7 +148,7 @@ class Home extends React.Component {
 
   handleChangeAmount(event: CustomEvent<InputChangeEventDetail>) {
     this.setState({
-      newItem: { 
+      newItem: {
         ...this.state.newItem,
         amount: (event.detail.value || '0').replace(',', '.'),
       }
@@ -162,10 +174,33 @@ class Home extends React.Component {
     });
   }
 
+
+  handleToggleTag(tag: { name: string }) {
+    let oldTags = this.state.newItem.tags.map(t => t.name);
+    let index = oldTags.indexOf(tag.name);
+    let newTags = this.state.newItem.tags;
+    if (index >= 0) {
+      newTags.splice(index, 1)
+    } else {
+      newTags.push(tag)
+    }
+    this.setState({
+      newItem: {
+        ...this.state.newItem,
+        tags: newTags
+      }
+    });
+    console.log(this.state.newItem.tags)
+  }
+
   handleChangeUsername(event: CustomEvent<InputChangeEventDetail>) {
     this.setState({
       userName: event.detail.value
     });
+  }
+
+  newItemHasTag(tag: { name: string }) {
+    return this.state.newItem.tags.map(t => t.name).indexOf(tag.name) >= 0
   }
 
   handleSubmit(event: FormEvent) {
@@ -206,6 +241,13 @@ class Home extends React.Component {
                     {expenditure.reason}
                     <p>{expenditure.username}</p>
                   </IonLabel>
+                  {expenditure.tags.map((tag) => {
+                    return (
+                      <IonChip color="primary">
+                        <IonLabel>{tag.name}</IonLabel>
+                      </IonChip>
+                    );
+                  })}
                   <IonLabel slot="end" color="success" position="fixed">
                     {expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
                   </IonLabel>
@@ -257,6 +299,17 @@ class Home extends React.Component {
                     );
                   })}
                 </IonSelect>
+              </IonItem>
+              <IonItem>
+                <IonLabel>Tags:</IonLabel>
+                {this.state.tags.map((tag) => {
+                  return (
+                    <IonChip onClick={(evt) => this.handleToggleTag(tag)} color="primary" outline={this.newItemHasTag(tag) === false}>
+                      <IonIcon icon={this.newItemHasTag(tag) ? checkmarkCircleOutline : add}></IonIcon>
+                      <IonLabel>{tag.name}</IonLabel>
+                    </IonChip>
+                  );
+                })}
               </IonItem>
             </IonContent>
           </form>
