@@ -3,6 +3,7 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import Home from './pages/Home';
+import { TagOverview, TagDetail } from './pages/Tags';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -23,15 +24,19 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 
+export const API_HOST = process.env.NODE_ENV == 'development' ? "http://localhost:5000" : ""
+
 class App extends React.Component {
 
-  render(){
-    return(
+  render() {
+    return (
       <IonApp>
         <IonReactRouter>
           <IonRouterOutlet>
             <Route path="/home" component={Home} exact={true} />
-            <Route exact path="/" render={() => <Redirect to="/home" />} />
+            <Route path="/tags/:id/" component={TagDetail} />
+            <Route path="/tags/" component={TagOverview} />
+            <Route path="/" render={() => <Redirect to="/home" />} />
           </IonRouterOutlet>
         </IonReactRouter>
       </IonApp>

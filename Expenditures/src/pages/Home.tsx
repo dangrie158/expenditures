@@ -1,18 +1,15 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonListHeader, IonSelect, IonSelectOption, IonChip } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonSelect, IonSelectOption, IonChip } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
-import { add, checkmarkCircleOutline, } from 'ionicons/icons';
+import { add, checkmarkCircleOutline, addCircleOutline } from 'ionicons/icons';
+import { API_HOST } from '../App'
+import { Tag, Expenditure } from '../models'
+import { RouteComponentProps } from "react-router-dom";
 
-class Expenditure {
-  username: string = "n/a"
-  amount: number = 0
-  reason: string = "n/a"
-  id: number = -1
-  tags: Array<{ name: string }> = []
-}
+class Home extends React.Component<RouteComponentProps> {
 
-class Home extends React.Component {
+
   state = {
     expenditures: Array<Expenditure>(),
     showModal: false,
@@ -20,7 +17,7 @@ class Home extends React.Component {
     userName: this.getUsername(),
     userNameIsSet: this.getUsername() !== "",
     availableUserNames: Array<string>(),
-    tags: Array<{ name: string }>(),
+    tags: Array<Tag>(),
     balance: 0,
     isSaving: false
   }
@@ -46,14 +43,14 @@ class Home extends React.Component {
   }
 
   deleteExpenditure(item: Expenditure) {
-    fetch(`/api/expenditures/${item.id}`, { method: 'DELETE' })
+    fetch(`${API_HOST}/api/expenditures/${item.id}`, { method: 'DELETE' })
       .then((_: Object) => {
         const data = this.state.expenditures.filter(i => i.id !== item.id)
 
         this.setState({ expenditures: data })
         this.doRefresh();
       })
-      .catch(console.log)
+      .catch(console.error)
   }
 
   addExpenditure(item: Expenditure) {
@@ -66,7 +63,7 @@ class Home extends React.Component {
 
     this.setState({ isSaving: true });
 
-    return fetch(`/api/expenditures`, {
+    return fetch(`${API_HOST}/api/expenditures`, {
       method: 'POST',
       headers: {
         "Content-type": "application/json"
@@ -77,7 +74,7 @@ class Home extends React.Component {
         this.doRefresh();
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
         alert("Speichern fehlgeschlagen");
       })
       .finally(() => {
@@ -101,7 +98,7 @@ class Home extends React.Component {
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    fetch('/api/expenditures?limit=20')
+    fetch(`${API_HOST}/api/expenditures?limit=20`)
       .then(res => res.json())
       .then((data) => {
         this.setState({
@@ -114,21 +111,20 @@ class Home extends React.Component {
           event.detail.complete()
         }
       })
-      .catch(console.log)
+      .catch(console.error)
 
-    fetch('/api/tags')
+    fetch(`${API_HOST}/api/tags`)
       .then(res => res.json())
       .then((data) => {
         this.setState({
           tags: data
         })
       })
-      .catch(console.log)
+      .catch(console.error)
 
-    fetch('/api/current-status')
+    fetch(`${API_HOST}/api/current-status`)
       .then(res => res.json())
       .then((data) => {
-        console.log(data)
         this.setState({
           availableUserNames: data.map((item: Array<string>) => item[0])
         })
@@ -143,7 +139,7 @@ class Home extends React.Component {
         })
         return data
       })
-      .catch(console.log)
+      .catch(console.error)
   }
 
   handleChangeAmount(event: CustomEvent<InputChangeEventDetail>) {
@@ -165,7 +161,6 @@ class Home extends React.Component {
   }
 
   handleChangeUser(event: CustomEvent<InputChangeEventDetail>) {
-    console.log(this.state)
     this.setState({
       newItem: {
         ...this.state.newItem,
@@ -175,7 +170,7 @@ class Home extends React.Component {
   }
 
 
-  handleToggleTag(tag: { name: string }) {
+  handleToggleTag(tag: Tag) {
     let oldTags = this.state.newItem.tags.map(t => t.name);
     let index = oldTags.indexOf(tag.name);
     let newTags = this.state.newItem.tags;
@@ -190,7 +185,6 @@ class Home extends React.Component {
         tags: newTags
       }
     });
-    console.log(this.state.newItem.tags)
   }
 
   handleChangeUsername(event: CustomEvent<InputChangeEventDetail>) {
@@ -221,7 +215,7 @@ class Home extends React.Component {
         <IonHeader>
           <IonToolbar>
             <IonTitle>Letzte Ausgaben</IonTitle>
-            <IonItem slot="end">
+            <IonItem slot="end" routerLink="/tags/" routerDirection="forward">
               <IonLabel position="fixed" color={this.state.balance < 0 ? "warning" : "success"}>
                 <p>Status:</p>
                 <p>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</p>
@@ -236,15 +230,16 @@ class Home extends React.Component {
           <IonList>
             {this.state.expenditures.map((expenditure) => (
               <IonItemSliding key={expenditure.id.toString()}>
-                <IonItem>
+                <IonItem key={expenditure.id}>
                   <IonLabel position="fixed">
                     {expenditure.reason}
                     <p>{expenditure.username}</p>
                   </IonLabel>
                   {expenditure.tags.map((tag) => {
                     return (
-                      <IonChip color="primary">
+                      <IonChip color={tag.color} onClick={() => this.props.history.push(`/tags/${tag.id}`)}>
                         <IonLabel>{tag.name}</IonLabel>
+                        <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
                       </IonChip>
                     );
                   })}
@@ -304,9 +299,10 @@ class Home extends React.Component {
                 <IonLabel>Tags:</IonLabel>
                 {this.state.tags.map((tag) => {
                   return (
-                    <IonChip onClick={(evt) => this.handleToggleTag(tag)} color="primary" outline={this.newItemHasTag(tag) === false}>
-                      <IonIcon icon={this.newItemHasTag(tag) ? checkmarkCircleOutline : add}></IonIcon>
+                    <IonChip onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} outline={this.newItemHasTag(tag) === false}>
+                      <IonIcon icon={this.newItemHasTag(tag) ? checkmarkCircleOutline : addCircleOutline}></IonIcon>
                       <IonLabel>{tag.name}</IonLabel>
+                      <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
                     </IonChip>
                   );
                 })}
