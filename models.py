@@ -35,18 +35,27 @@ class Expenditure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80))
     amount = db.Column(db.Integer)
-    reason = db.Column(db.String(120))
+    _reason = db.Column("reason", db.String(120))
     created_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     tags = db.relationship(Tag, secondary=tags, lazy='subquery',
                            backref=db.backref('expenditures', lazy=True))
 
-    @staticmethod
-    def insert_initial_values(*args, **kwargs):
-        db.session.add(Expenditure(username='Dani',
-                                   amount=0, reason="Übertrag"))
-        db.session.add(Expenditure(username='Cram',
-                                   amount=0, reason="Übertrag"))
-        db.session.commit()
+    @ property
+    def reason(self):
+        return self._reason.title()
+
+    @reason.setter
+    def reason(self, reason):
+        self._reason = reason
+
+
+@staticmethod
+def insert_initial_values(*args, **kwargs):
+    db.session.add(Expenditure(username='Dani',
+                               amount=0, reason="Übertrag"))
+    db.session.add(Expenditure(username='Cram',
+                               amount=0, reason="Übertrag"))
+    db.session.commit()
 
 
 event.listen(Expenditure.__table__, 'after_create',
