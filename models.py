@@ -48,14 +48,13 @@ class Expenditure(db.Model):
     def reason(self, reason):
         self._reason = reason
 
-
-@staticmethod
-def insert_initial_values(*args, **kwargs):
-    db.session.add(Expenditure(username='Dani',
-                               amount=0, reason="Übertrag"))
-    db.session.add(Expenditure(username='Cram',
-                               amount=0, reason="Übertrag"))
-    db.session.commit()
+    @staticmethod
+    def insert_initial_values(*args, **kwargs):
+        db.session.add(Expenditure(username='Dani',
+                                   amount=0, reason="Übertrag"))
+        db.session.add(Expenditure(username='Cram',
+                                   amount=0, reason="Übertrag"))
+        db.session.commit()
 
 
 event.listen(Expenditure.__table__, 'after_create',
