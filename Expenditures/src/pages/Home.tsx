@@ -237,10 +237,9 @@ class Home extends React.Component<RouteComponentProps> {
                   </IonLabel>
                   {expenditure.tags.map((tag) => {
                     return (
-                      <IonChip color={tag.color} onClick={() => this.props.history.push(`/tags/${tag.id}`)}>
-                        <IonLabel>{tag.name}</IonLabel>
+                      <IonButton color={tag.color} onClick={() => this.props.history.push(`/tags/${tag.id}`)}>
                         <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
-                      </IonChip>
+                      </IonButton>
                     );
                   })}
                   <IonLabel slot="end" color="success" position="fixed">
@@ -299,11 +298,10 @@ class Home extends React.Component<RouteComponentProps> {
                 <IonLabel>Tags:</IonLabel>
                 {this.state.tags.map((tag) => {
                   return (
-                    <IonChip onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} outline={this.newItemHasTag(tag) === false}>
-                      <IonIcon icon={this.newItemHasTag(tag) ? checkmarkCircleOutline : addCircleOutline}></IonIcon>
+                    <IonButton onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} fill={this.newItemHasTag(tag) ? "solid" : "outline"}>
                       <IonLabel>{tag.name}</IonLabel>
                       <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
-                    </IonChip>
+                    </IonButton>
                   );
                 })}
               </IonItem>
