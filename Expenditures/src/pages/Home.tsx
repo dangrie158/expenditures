@@ -263,7 +263,7 @@ class Home extends React.Component<RouteComponentProps> {
         <IonLoading isOpen={this.state.isSaving || this.state.isLoading} message="Laden..." />
         <IonHeader>
           <IonToolbar>
-            <IonThumbnail slot="start">
+            <IonThumbnail slot="start" style={{ "marginLeft": "2rem" }}>
               <IonImg src="/assets/icon/android-chrome-192x192.png" />
             </IonThumbnail>
             <IonTitle>Letzte Ausgaben</IonTitle>
@@ -279,7 +279,7 @@ class Home extends React.Component<RouteComponentProps> {
           <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
-          <IonList>
+          <IonList style={{ "marginBottom": "3rem" }}>
             {this.state.expenditures.map((expenditure) => (
               <IonItemSliding key={expenditure.id.toString()}>
                 <IonItem>
