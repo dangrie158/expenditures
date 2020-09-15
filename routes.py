@@ -28,6 +28,22 @@ def add_expenditure():
     return jsonify(ExpenditureSchema().dump(expenditure))
 
 
+@app.route("/api/expenditures/<id>", methods=["PUT"])
+def update_expenditure(id):
+
+    expenditure = Expenditure.query.get(id)
+
+    tags = request.json.pop('tags', [])
+    expenditure.tags = [Tag.query.filter(
+        Tag.name == tag['name']).first() for tag in tags]
+    expenditure.username = request.json.pop('username')
+    expenditure.reason = request.json.pop('reason')
+    expenditure.amount = request.json.pop('amount')
+    db.session.commit()
+
+    return jsonify(ExpenditureSchema().dump(expenditure))
+
+
 @app.route("/api/expenditures", methods=["GET"])
 def get_expenditure():
     limit = request.args.get('limit')

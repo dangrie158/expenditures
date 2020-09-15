@@ -1,8 +1,8 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonSelect, IonSelectOption, IonChip } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonSelect, IonSelectOption } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
-import { add, checkmarkCircleOutline, addCircleOutline } from 'ionicons/icons';
+import { add } from 'ionicons/icons';
 import { API_HOST } from '../App'
 import { Tag, Expenditure } from '../models'
 import { RouteComponentProps } from "react-router-dom";
@@ -53,7 +53,7 @@ class Home extends React.Component<RouteComponentProps> {
       .catch(console.error)
   }
 
-  addExpenditure(item: Expenditure) {
+  addOrUpdateExpenditure(item: Expenditure) {
     let newItem = {
       amount: (item.amount * 100).toFixed(0),
       reason: item.reason,
@@ -63,8 +63,17 @@ class Home extends React.Component<RouteComponentProps> {
 
     this.setState({ isSaving: true });
 
-    return fetch(`${API_HOST}/api/expenditures`, {
-      method: 'POST',
+
+
+    let url = `${API_HOST}/api/expenditures`
+    let method = 'POST'
+    if (item.id !== -1) {
+      url = `${API_HOST}/api/expenditures/${item.id}`
+      method = 'PUT'
+    }
+
+    return fetch(url, {
+      method: method,
       headers: {
         "Content-type": "application/json"
       },
@@ -200,7 +209,7 @@ class Home extends React.Component<RouteComponentProps> {
   handleSubmit(event: FormEvent) {
     event.preventDefault();
     let newItem = this.state.newItem
-    this.addExpenditure(newItem);
+    this.addOrUpdateExpenditure(newItem);
   }
 
   handleSubmitUsername(event: FormEvent) {
@@ -209,6 +218,13 @@ class Home extends React.Component<RouteComponentProps> {
     this.saveUsername(this.state.userName)
     this.setState({ userNameIsSet: true })
   }
+
+  showEmptyModal() {
+    let emptyExpenditure = new Expenditure()
+    emptyExpenditure.username = this.state.userName;
+    this.setState({ showModal: true, newItem: emptyExpenditure })
+  }
+
   render() {
     return (
       <IonPage>
@@ -229,7 +245,7 @@ class Home extends React.Component<RouteComponentProps> {
           </IonRefresher>
           <IonList>
             {this.state.expenditures.map((expenditure) => (
-              <IonItemSliding key={expenditure.id.toString()}>
+              <IonItemSliding key={expenditure.id.toString()} onClick={() => { this.setState({ newItem: expenditure, showModal: true }) }}>
                 <IonItem key={expenditure.id}>
                   <IonLabel position="fixed">
                     {expenditure.reason}
@@ -255,12 +271,12 @@ class Home extends React.Component<RouteComponentProps> {
             ))}
           </IonList>
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
-            <IonFabButton onClick={() => this.setState({ showModal: true })}>
+            <IonFabButton onClick={() => this.showEmptyModal()}>
               <IonIcon icon={add} />
             </IonFabButton>
           </IonFab>
         </IonContent>
-        <IonModal isOpen={this.state.showModal}>
+        <IonModal isOpen={this.state.showModal} onDidDismiss={() => { this.setState({ showModal: false }) }}>
           <form onSubmit={this.handleSubmit}>
             <IonHeader translucent>
               <IonToolbar>
@@ -276,15 +292,15 @@ class Home extends React.Component<RouteComponentProps> {
             <IonContent fullscreen>
               <IonItem>
                 <IonLabel>Betrag</IonLabel>
-                <IonInput inputMode="decimal" pattern="^[0-9]+([\.,][0-9]{1,2})?$" required={true} onIonChange={this.handleChangeAmount} placeholder="0.00"></IonInput> €
+                <IonInput value={this.state.newItem.amount > 0 ? (this.state.newItem.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""} inputMode="decimal" pattern="^[0-9]+([\.,][0-9]{1,2})?$" required={true} onIonChange={this.handleChangeAmount} placeholder="0.00"></IonInput> €
               </IonItem>
               <IonItem>
                 <IonLabel>Grund</IonLabel>
-                <IonInput required={true} onIonChange={this.handleChangeReason} placeholder="Shop oder Zweck"></IonInput>
+                <IonInput required={true} value={this.state.newItem.reason} onIonChange={this.handleChangeReason} placeholder="Shop oder Zweck"></IonInput>
               </IonItem>
               <IonItem>
                 <IonLabel>Gezahlt von</IonLabel>
-                <IonSelect onIonChange={this.handleChangeUser}>
+                <IonSelect onIonChange={this.handleChangeUser} value={this.state.newItem.username}>
                   {this.state.availableUserNames.map((name) => {
                     return (
                       <IonSelectOption selected={name === this.state.newItem.username} key={name} value={name}>

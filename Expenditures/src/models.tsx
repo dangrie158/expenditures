@@ -10,9 +10,9 @@ export class Tag {
 }
 
 export class Expenditure {
-    username: string = "n/a"
+    username: string = ""
     amount: number = 0
-    reason: string = "n/a"
+    reason: string = ""
     id: number = -1
     tags: Array<Tag> = []
 }
