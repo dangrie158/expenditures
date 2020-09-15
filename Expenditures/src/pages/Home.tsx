@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonSelect, IonSelectOption } from '@ionic/react';
+import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonSelect, IonSelectOption, IonText, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonLoading, IonImg, IonThumbnail } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
@@ -19,7 +19,9 @@ class Home extends React.Component<RouteComponentProps> {
     availableUserNames: Array<string>(),
     tags: Array<Tag>(),
     balance: 0,
-    isSaving: false
+    isSaving: false,
+    expenditureLimit: 20,
+    isLoading: false
   }
 
   constructor(props: any) {
@@ -51,6 +53,12 @@ class Home extends React.Component<RouteComponentProps> {
         this.doRefresh();
       })
       .catch(console.error)
+  }
+
+  editExpenditure(item: Expenditure) {
+    this.setState({
+      newItem: item, showModal: true
+    })
   }
 
   addOrUpdateExpenditure(item: Expenditure) {
@@ -107,10 +115,15 @@ class Home extends React.Component<RouteComponentProps> {
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    fetch(`${API_HOST}/api/expenditures?limit=20`)
+    this.setState({
+      isLoading: true
+    });
+
+    fetch(`${API_HOST}/api/expenditures?limit=${this.state.expenditureLimit}`)
       .then(res => res.json())
       .then((data) => {
         this.setState({
+          isLoading: false,
           expenditures: data.map((item: any) => {
             item.amount = item.amount / 100
             return item
@@ -222,53 +235,90 @@ class Home extends React.Component<RouteComponentProps> {
   showEmptyModal() {
     let emptyExpenditure = new Expenditure()
     emptyExpenditure.username = this.state.userName;
-    this.setState({ showModal: true, newItem: emptyExpenditure })
+    this.setState({ showModal: true, newItem: emptyExpenditure });
+  }
+
+  searchNext(event: CustomEvent) {
+    this.setState({
+      expenditureLimit: this.state.expenditureLimit + 20
+    });
+
+    fetch(`${API_HOST}/api/expenditures?limit=${this.state.expenditureLimit}`)
+      .then(res => res.json())
+      .then((data) => {
+        this.setState({
+          expenditures: data.map((item: any) => {
+            item.amount = item.amount / 100
+            return item
+          })
+        })
+      })
+      .catch(console.error)
+      .finally(() => (event.target as HTMLIonInfiniteScrollElement).complete())
   }
 
   render() {
     return (
       <IonPage>
+        <IonLoading isOpen={this.state.isSaving || this.state.isLoading} message="Laden..." />
         <IonHeader>
           <IonToolbar>
+            <IonThumbnail slot="start">
+              <IonImg src="/assets/icon/android-chrome-192x192.png" />
+            </IonThumbnail>
             <IonTitle>Letzte Ausgaben</IonTitle>
-            <IonItem slot="end" routerLink="/tags/" routerDirection="forward">
-              <IonLabel position="fixed" color={this.state.balance < 0 ? "warning" : "success"}>
-                <p>Status:</p>
-                <p>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</p>
-              </IonLabel>
-            </IonItem>
           </IonToolbar>
         </IonHeader>
         <IonContent fullscreen className="ion-padding">
+          <IonCard routerLink="/tags/" style={{ "bottom": "0", "position": "fixed", "width": "calc(100% - 4em)", "margin": "2em" }} routerDirection="forward" slot="fixed" color={this.state.balance < 0 ? "warning" : "success"} >
+            <IonCardHeader>
+              <IonCardSubtitle>Aktueller Stand</IonCardSubtitle>
+              <IonCardTitle>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>
+            </IonCardHeader>
+          </IonCard>
           <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
           <IonList>
             {this.state.expenditures.map((expenditure) => (
-              <IonItemSliding key={expenditure.id.toString()} onClick={() => { this.setState({ newItem: expenditure, showModal: true }) }}>
-                <IonItem key={expenditure.id}>
-                  <IonLabel position="fixed">
+              <IonItemSliding key={expenditure.id.toString()}>
+                <IonItem>
+                  <IonLabel>
                     {expenditure.reason}
                     <p>{expenditure.username}</p>
                   </IonLabel>
-                  {expenditure.tags.map((tag) => {
-                    return (
-                      <IonButton color={tag.color} onClick={() => this.props.history.push(`/tags/${tag.id}`)}>
-                        <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
-                      </IonButton>
-                    );
-                  })}
-                  <IonLabel slot="end" color="success" position="fixed">
-                    {expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+
+                  <IonLabel color="success" className="ion-text-wrap" style={{ "textAlign": "right" }}>
+                    <IonText color="success">
+                      {expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+                    </IonText>
+                    <p></p>
+                    <IonText color="secondary">
+                      {expenditure.tags.map((tag) => {
+                        return (
+                          <IonButton color={tag.color} onClick={() => this.props.history.push(`/tags/${tag.id}`)} key={tag.id}>
+                            <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
+                          </IonButton>
+                        );
+                      })}
+                    </IonText>
                   </IonLabel>
                 </IonItem>
                 <IonItemOptions side="end">
-                  <IonItemOption color="danger" onClick={() => {
-                    this.deleteExpenditure(expenditure)
-                  }}>Löschen</IonItemOption>
+                  <IonItemOption color="primary" onClick={() => { document.querySelector('ion-item-sliding')!.closeOpened(); this.editExpenditure(expenditure) }}>
+                    Bearbeiten
+                  </IonItemOption>
+
+                  <IonItemOption color="danger" onClick={() => { this.deleteExpenditure(expenditure) }}>
+                    Löschen
+                  </IonItemOption>
                 </IonItemOptions>
               </IonItemSliding>
             ))}
+            <IonInfiniteScroll threshold="100px" disabled={false} onIonInfinite={(e: CustomEvent<void>) => this.searchNext(e)}>
+              <IonInfiniteScrollContent>
+              </IonInfiniteScrollContent>
+            </IonInfiniteScroll>
           </IonList>
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
             <IonFabButton onClick={() => this.showEmptyModal()}>
@@ -280,7 +330,7 @@ class Home extends React.Component<RouteComponentProps> {
           <form onSubmit={this.handleSubmit}>
             <IonHeader translucent>
               <IonToolbar>
-                <IonTitle>Ausgabe eintragen</IonTitle>
+                <IonTitle>{this.state.newItem.id === -1 ? "Ausgabe eintragen" : "Ausgabe bearbeiten"}</IonTitle>
                 <IonButtons slot="start">
                   <IonButton onClick={() => this.setState({ showModal: false })}>Abbrechen</IonButton>
                 </IonButtons>
@@ -312,14 +362,17 @@ class Home extends React.Component<RouteComponentProps> {
               </IonItem>
               <IonItem>
                 <IonLabel>Tags:</IonLabel>
-                {this.state.tags.map((tag) => {
-                  return (
-                    <IonButton onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} fill={this.newItemHasTag(tag) ? "solid" : "outline"}>
-                      <IonLabel>{tag.name}</IonLabel>
-                      <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
-                    </IonButton>
-                  );
-                })}
+
+                <IonLabel className="ion-text-wrap">
+                  {this.state.tags.map((tag) => {
+                    return (
+                      <IonButton onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} fill={this.newItemHasTag(tag) ? "solid" : "outline"} key={tag.id}>
+                        <IonLabel>{tag.name}</IonLabel>
+                        <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
+                      </IonButton>
+                    );
+                  })}
+                </IonLabel>
               </IonItem>
             </IonContent>
           </form>

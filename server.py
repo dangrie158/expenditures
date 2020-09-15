@@ -1,5 +1,7 @@
 from app import app
+from os import environ
 
 if __name__ == '__main__':
     import routes
-    app.run(debug=True)
+    debug = True if environ['FLASK_ENV'] == 'development' else False
+    app.run(host="0.0.0.0", port=5000, debug=debug)

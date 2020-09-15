@@ -1,4 +1,4 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonListHeader, IonItem, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, } from '@ionic/react';
+import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider, IonListHeader } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { API_HOST } from '../App'
@@ -42,8 +42,7 @@ export class TagOverview extends React.Component {
           </IonRefresher>
           <IonList>
             {this.state.tags.map((tag) => (
-
-              <IonItem routerLink={"/tags/" + tag.id} routerDirection="forward" key="tag.id" >
+              <IonItem routerLink={"/tags/" + tag.id} routerDirection="forward" key={tag.id}>
                 <IonLabel position="fixed">
                   {tag.name}
                 </IonLabel>
@@ -52,7 +51,6 @@ export class TagOverview extends React.Component {
                   {(tag.sum! / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
                 </IonLabel>
               </IonItem>
-
             ))}
           </IonList>
 
@@ -88,7 +86,6 @@ export class TagDetail extends React.Component<TagDetailProps> {
       fetch(`${API_HOST}/api/tags/${this.tagId}`)
         .then(res => res.json())
         .then((data) => {
-          console.log(data)
           this.setState({
             tag: data
           })
@@ -119,32 +116,41 @@ export class TagDetail extends React.Component<TagDetailProps> {
           </IonRefresher>
           <IonList>
             <IonListHeader>
-              <IonLabel>Monatliche Ausgaben</IonLabel>
+              <IonLabel>Zusammenfassung</IonLabel>
             </IonListHeader>
-            {this.state.tag.by_month!.map((entry) => (
-              <IonItem key="entry[0]">
-                <IonLabel>
-                  {new Date(Date.parse(entry[0])).toLocaleString(undefined, { month: "long", year: "numeric" })}
-                </IonLabel>
-                <IonLabel slot="end" color="success" position="fixed">
-                  {(entry[1] / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                </IonLabel>
-              </IonItem>
-            ))}
 
-            <IonListHeader>
-              <IonLabel>Jährliche Ausgaben</IonLabel>
-            </IonListHeader>
-            {this.state.tag.by_year!.map((entry) => (
-              <IonItem key="entry[0]">
-                <IonLabel position="fixed">
-                  {new Date(Date.parse(entry[0])).toLocaleString(undefined, { year: "numeric" })}
-                </IonLabel>
-                <IonLabel slot="end" color="success" position="fixed">
-                  {(entry[1] / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                </IonLabel>
-              </IonItem>
-            ))}
+            <IonItemGroup>
+              <IonItemDivider>
+                <IonLabel>Monatliche Ausgaben</IonLabel>
+              </IonItemDivider>
+              {this.state.tag.by_month!.map((entry) => (
+                <IonItem key={entry[0]}>
+                  <IonLabel>
+                    {new Date(Date.parse(entry[0])).toLocaleString(undefined, { month: "long", year: "numeric" })}
+                  </IonLabel>
+                  <IonLabel slot="end" color="success" position="fixed">
+                    {(entry[1] / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+                  </IonLabel>
+                </IonItem>
+              ))}
+            </IonItemGroup>
+
+            <IonItemGroup>
+              <IonItemDivider>
+                <IonLabel>Jährliche Ausgaben</IonLabel>
+              </IonItemDivider>
+              {this.state.tag.by_year!.map((entry) => (
+                <IonItem key={entry[0]}>
+                  <IonLabel position="fixed">
+                    {new Date(Date.parse(entry[0])).toLocaleString(undefined, { year: "numeric" })}
+                  </IonLabel>
+                  <IonLabel slot="end" color="success" position="fixed">
+                    {(entry[1] / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+                  </IonLabel>
+                </IonItem>
+              ))}
+
+            </IonItemGroup>
           </IonList>
 
         </IonContent>

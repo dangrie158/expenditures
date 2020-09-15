@@ -24,7 +24,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 
-export const API_HOST = process.env.NODE_ENV === 'development' ? "http://localhost:5000" : ""
+export const API_HOST = process.env.NODE_ENV === "development" ? `http://${window.location.hostname}:5000` : ""
 
 class App extends React.Component {
 
