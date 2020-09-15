@@ -263,13 +263,13 @@ class Home extends React.Component<RouteComponentProps> {
         <IonLoading isOpen={this.state.isSaving || this.state.isLoading} message="Laden..." />
         <IonHeader>
           <IonToolbar>
-            <IonThumbnail slot="start" style={{ "marginLeft": "2rem" }}>
+            <IonThumbnail slot="start" style={{ "marginLeft": "1rem" }}>
               <IonImg src="/assets/icon/android-chrome-192x192.png" />
             </IonThumbnail>
             <IonTitle>Letzte Ausgaben</IonTitle>
           </IonToolbar>
         </IonHeader>
-        <IonContent fullscreen className="ion-padding">
+        <IonContent fullscreen className="ion-padding" style={{ "--padding-start": 0, "--padding-end": 0 }}>
           <IonCard routerLink="/tags/" style={{ "bottom": "0", "position": "fixed", "width": "calc(100% - 4em)", "margin": "2em" }} routerDirection="forward" slot="fixed" color={this.state.balance < 0 ? "warning" : "success"} >
             <IonCardHeader>
               <IonCardSubtitle>Aktueller Stand</IonCardSubtitle>
