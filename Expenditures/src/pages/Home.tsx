@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonSelect, IonSelectOption, IonText, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonLoading, IonImg, IonThumbnail } from '@ionic/react';
+import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonText, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonLoading, IonImg, IonThumbnail, IonSegment, IonSegmentButton } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
@@ -22,16 +22,6 @@ class Home extends React.Component<RouteComponentProps> {
     isSaving: false,
     expenditureLimit: 20,
     isLoading: false
-  }
-
-  constructor(props: any) {
-    super(props)
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChangeAmount = this.handleChangeAmount.bind(this);
-    this.handleChangeReason = this.handleChangeReason.bind(this);
-    this.handleChangeUser = this.handleChangeUser.bind(this);
-    this.handleSubmitUsername = this.handleSubmitUsername.bind(this);
-    this.handleChangeUsername = this.handleChangeUsername.bind(this);
   }
 
   componentDidMount() {
@@ -327,7 +317,7 @@ class Home extends React.Component<RouteComponentProps> {
           </IonFab>
         </IonContent>
         <IonModal isOpen={this.state.showModal} onDidDismiss={() => { this.setState({ showModal: false }) }}>
-          <form onSubmit={this.handleSubmit}>
+          <form onSubmit={(e) => this.handleSubmit(e)}>
             <IonHeader translucent>
               <IonToolbar>
                 <IonTitle>{this.state.newItem.id === -1 ? "Ausgabe eintragen" : "Ausgabe bearbeiten"}</IonTitle>
@@ -342,31 +332,29 @@ class Home extends React.Component<RouteComponentProps> {
             <IonContent fullscreen>
               <IonItem>
                 <IonLabel>Betrag</IonLabel>
-                <IonInput value={this.state.newItem.amount > 0 ? (this.state.newItem.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""} inputMode="decimal" pattern="^[0-9]+([\.,][0-9]{1,2})?$" required={true} onIonChange={this.handleChangeAmount} placeholder="0.00"></IonInput> €
+                <IonInput value={this.state.newItem.amount > 0 ? (this.state.newItem.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""} inputMode="decimal" pattern="^[0-9]+([\.,][0-9]{1,2})?$" required={true} onIonChange={(e) => this.handleChangeAmount(e)} placeholder="0.00"></IonInput> €
               </IonItem>
               <IonItem>
                 <IonLabel>Grund</IonLabel>
-                <IonInput required={true} value={this.state.newItem.reason} onIonChange={this.handleChangeReason} placeholder="Shop oder Zweck"></IonInput>
+                <IonInput required={true} value={this.state.newItem.reason} onIonChange={(e) => this.handleChangeReason(e)} placeholder="Shop oder Zweck" autocapitalize="on"></IonInput>
               </IonItem>
               <IonItem>
                 <IonLabel>Gezahlt von</IonLabel>
-                <IonSelect onIonChange={this.handleChangeUser} value={this.state.newItem.username}>
+                <IonSegment slot="end" style={{ "width": "50%" }} onIonChange={(e) => this.handleChangeUser(e)} value={this.state.newItem.username}>
                   {this.state.availableUserNames.map((name) => {
                     return (
-                      <IonSelectOption selected={name === this.state.newItem.username} key={name} value={name}>
-                        {name}
-                      </IonSelectOption>
+                      <IonSegmentButton key={name} value={name}>
+                        <IonLabel>{name}</IonLabel>
+                      </IonSegmentButton>
                     );
                   })}
-                </IonSelect>
+                </IonSegment>
               </IonItem>
               <IonItem>
-                <IonLabel>Tags:</IonLabel>
-
                 <IonLabel className="ion-text-wrap">
                   {this.state.tags.map((tag) => {
                     return (
-                      <IonButton onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} fill={this.newItemHasTag(tag) ? "solid" : "outline"} key={tag.id}>
+                      <IonButton onClick={(evt) => this.handleToggleTag(tag)} color={tag.color} fill={this.newItemHasTag(tag) ? "solid" : "outline"} key={tag.id} size="small" style={{ "width": "40%", "margin": "0.4rem calc(20%/4)" }}>
                         <IonLabel>{tag.name}</IonLabel>
                         <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
                       </IonButton>
@@ -378,7 +366,7 @@ class Home extends React.Component<RouteComponentProps> {
           </form>
         </IonModal>
         <IonModal isOpen={!this.state.userNameIsSet}>
-          <form onSubmit={this.handleSubmitUsername}>
+          <form onSubmit={(e) => this.handleSubmitUsername(e)}>
             <IonHeader translucent>
               <IonToolbar>
                 <IonTitle>Nutzer eintragen</IonTitle>
@@ -390,7 +378,7 @@ class Home extends React.Component<RouteComponentProps> {
             <IonContent fullscreen>
               <IonItem>
                 <IonLabel>Nutzer</IonLabel>
-                <IonInput required={true} onIonChange={this.handleChangeUsername}></IonInput>
+                <IonInput required={true} onIonChange={(e) => this.handleChangeUsername(e)}></IonInput>
               </IonItem>
             </IonContent>
           </form>
