@@ -1,4 +1,4 @@
-import { IonContent, IonHeader, IonInfiniteScroll, IonInfiniteScrollContent, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonRefresher, IonRefresherContent, IonInput, IonText, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonLoading, IonImg, IonThumbnail, IonSegment, IonSegmentButton } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonFab, IonFabButton, IonButtons, IonIcon, IonModal, IonButton, IonInput, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonLoading, IonImg, IonThumbnail, IonSegment, IonSegmentButton } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
@@ -7,11 +7,10 @@ import { API_HOST } from '../App'
 import { Tag, Expenditure } from '../models'
 import { RouteComponentProps } from "react-router-dom";
 
+import { ExpenditureList } from './ExpenditureList';
+
 class Home extends React.Component<RouteComponentProps> {
-
-
   state = {
-    expenditures: Array<Expenditure>(),
     showModal: false,
     newItem: new Expenditure(),
     userName: this.getUsername(),
@@ -22,7 +21,9 @@ class Home extends React.Component<RouteComponentProps> {
     isSaving: false,
     expenditureLimit: 20,
     isLoading: false
-  }
+  };
+
+  listRefresher?: () => Promise<void>;
 
   componentDidMount() {
     this.setState({
@@ -30,25 +31,27 @@ class Home extends React.Component<RouteComponentProps> {
         ...this.state.newItem,
         username: this.state.userName
       }
-    })
-    this.doRefresh()
+    });
   }
 
-  deleteExpenditure(item: Expenditure) {
-    fetch(`${API_HOST}/api/expenditures/${item.id}`, { method: 'DELETE' })
-      .then((_: Object) => {
-        const data = this.state.expenditures.filter(i => i.id !== item.id)
-
-        this.setState({ expenditures: data })
-        this.doRefresh();
-      })
-      .catch(console.error)
+  onMountList(refresher: () => Promise<void>) {
+    console.log("call of onMount")
+    this.listRefresher = refresher;
+    this.doRefresh();
   }
 
   editExpenditure(item: Expenditure) {
     this.setState({
       newItem: item, showModal: true
     })
+  }
+
+  deleteExpenditure(item: Expenditure) {
+    fetch(`${API_HOST}/api/expenditures/${item.id}`, { method: 'DELETE' })
+      .then((_: Object) => {
+        this.doRefresh();
+      })
+      .catch(console.error)
   }
 
   addOrUpdateExpenditure(item: Expenditure) {
@@ -60,8 +63,6 @@ class Home extends React.Component<RouteComponentProps> {
     }
 
     this.setState({ isSaving: true });
-
-
 
     let url = `${API_HOST}/api/expenditures`
     let method = 'POST'
@@ -109,21 +110,14 @@ class Home extends React.Component<RouteComponentProps> {
       isLoading: true
     });
 
-    fetch(`${API_HOST}/api/expenditures?limit=${this.state.expenditureLimit}`)
-      .then(res => res.json())
-      .then((data) => {
+    this.listRefresher!()
+      .then(res => {
         this.setState({
-          isLoading: false,
-          expenditures: data.map((item: any) => {
-            item.amount = item.amount / 100
-            return item
-          })
-        })
-        if (event) {
-          event.detail.complete()
-        }
+          isLoading: false
+        });
       })
       .catch(console.error)
+
 
     fetch(`${API_HOST}/api/tags`)
       .then(res => res.json())
@@ -228,25 +222,6 @@ class Home extends React.Component<RouteComponentProps> {
     this.setState({ showModal: true, newItem: emptyExpenditure });
   }
 
-  searchNext(event: CustomEvent) {
-    this.setState({
-      expenditureLimit: this.state.expenditureLimit + 20
-    });
-
-    fetch(`${API_HOST}/api/expenditures?limit=${this.state.expenditureLimit}`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          expenditures: data.map((item: any) => {
-            item.amount = item.amount / 100
-            return item
-          })
-        })
-      })
-      .catch(console.error)
-      .finally(() => (event.target as HTMLIonInfiniteScrollElement).complete())
-  }
-
   render() {
     return (
       <IonPage>
@@ -266,50 +241,7 @@ class Home extends React.Component<RouteComponentProps> {
               <IonCardTitle>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>
             </IonCardHeader>
           </IonCard>
-          <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
-            <IonRefresherContent></IonRefresherContent>
-          </IonRefresher>
-          <IonList style={{ "marginBottom": "3rem" }}>
-            {this.state.expenditures.map((expenditure) => (
-              <IonItemSliding key={expenditure.id.toString()}>
-                <IonItem>
-                  <IonLabel>
-                    {expenditure.reason}
-                    <p>{expenditure.username}</p>
-                  </IonLabel>
-
-                  <IonLabel color="success" className="ion-text-wrap" style={{ "textAlign": "right" }}>
-                    <IonText color="success">
-                      {expenditure.amount.toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                    </IonText>
-                    <p></p>
-                    <IonText color="secondary">
-                      {expenditure.tags.map((tag) => {
-                        return (
-                          <IonButton color={tag.color} onClick={() => this.props.history.push(`/tags/${tag.id}`)} key={tag.id}>
-                            <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
-                          </IonButton>
-                        );
-                      })}
-                    </IonText>
-                  </IonLabel>
-                </IonItem>
-                <IonItemOptions side="end">
-                  <IonItemOption color="primary" onClick={() => { document.querySelector('ion-item-sliding')!.closeOpened(); this.editExpenditure(expenditure) }}>
-                    Bearbeiten
-                  </IonItemOption>
-
-                  <IonItemOption color="danger" onClick={() => { this.deleteExpenditure(expenditure) }}>
-                    Löschen
-                  </IonItemOption>
-                </IonItemOptions>
-              </IonItemSliding>
-            ))}
-            <IonInfiniteScroll threshold="100px" disabled={false} onIonInfinite={(e: CustomEvent<void>) => this.searchNext(e)}>
-              <IonInfiniteScrollContent>
-              </IonInfiniteScrollContent>
-            </IonInfiniteScroll>
-          </IonList>
+          <ExpenditureList onRefresherAvailable={(refresher) => { this.listRefresher = refresher; this.doRefresh() }} onEdit={(e) => this.editExpenditure(e)} onDelete={(e) => this.deleteExpenditure(e)} onTagClick={(tag) => this.props.history.push(`/tags/${tag.id}`)} />
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
             <IonFabButton onClick={() => this.showEmptyModal()}>
               <IonIcon icon={add} />
