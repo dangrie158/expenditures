@@ -47,12 +47,30 @@ def update_expenditure(id):
 @app.route("/api/expenditures", methods=["GET"])
 def get_expenditure():
     limit = request.args.get('limit')
+    tag = request.args.get('tag')
+    month = request.args.get('month')
+    year = request.args.get('year')
+
+    selected_expenditures = Expenditure.query \
+        .order_by(Expenditure.created_date.desc())
+
+    if tag:
+        selected_expenditures = selected_expenditures \
+            .join(tags, tags.columns.expenditure_id == Expenditure.id) \
+            .filter(tags.columns.tag_id == int(tag))
+
+    if month:
+        selected_expenditures = selected_expenditures \
+            .filter(func.strftime("%m", Expenditure.created_date) == str(month))
+
+    if year:
+        selected_expenditures = selected_expenditures \
+            .filter(func.strftime("%Y", Expenditure.created_date) == str(year))
+
     if limit:
-        all_expenditures = Expenditure.query.order_by(
-            Expenditure.created_date.desc()).limit(limit).all()
-    else:
-        all_expenditures = Expenditure.query.all()
-    result = ExpenditureSchema(many=True).dump(all_expenditures)
+        selected_expenditures = selected_expenditures.limit(limit)
+
+    result = ExpenditureSchema(many=True).dump(selected_expenditures.all())
     return jsonify(result)
 
 
