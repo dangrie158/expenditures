@@ -1,35 +1,75 @@
-import { IonContent, IonInfiniteScroll, IonInfiniteScrollContent, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonIcon, IonButton, IonRefresher, IonRefresherContent, IonText } from '@ionic/react';
+import { IonContent, IonInfiniteScroll, IonLoading, IonFab, IonFabButton, IonInfiniteScrollContent, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonIcon, IonButton, IonRefresher, IonRefresherContent, IonText } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
+import { add } from 'ionicons/icons';
 import React from 'react';
 import { API_HOST } from '../App'
 import { Tag, Expenditure } from '../models'
+import { ExpenditureEditor } from './ExpenditureEditor';
 
 type ExpenditureListProps = {
     onEdit: (item: Expenditure) => void;
-    onDelete: (item: Expenditure) => void;
+    onDelete?: (item: Expenditure) => void;
     onTagClick: (tag: Tag) => void;
     onRefresherAvailable?: (refresher: () => Promise<void>) => void
+    userNames: Array<string>;
     tag?: String;
     month?: String;
     year?: String;
-
 }
 
 export class ExpenditureList extends React.Component<ExpenditureListProps> {
     state = {
+        showEditor: false,
         expenditures: Array<Expenditure>(),
-        expenditureLimit: 20
-    }
+        expenditureLimit: 20,
+        newItem: new Expenditure(),
+        isLoading: false
+    };
+
 
     componentDidMount() {
-        this.doRefresh()
+        this.doRefresh();
         if (this.props.onRefresherAvailable) {
             this.props.onRefresherAvailable(this.doRefresh.bind(this))
         }
+
+        this.setState({
+            newItem: {
+                ...this.state.newItem,
+                username: this.getUsername()
+            }
+        });
+    }
+
+    getUsername() {
+        let userName = document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
+        return userName;
+    }
+
+    deleteExpenditure(item: Expenditure) {
+        fetch(`${API_HOST}/api/expenditures/${item.id}`, { method: 'DELETE' })
+            .then((_: Object) => {
+                this.doRefresh();
+                if (this.props.onDelete) { this.props.onDelete(item) }
+            })
+            .catch(console.error)
+    }
+
+    editExpenditure(item: Expenditure) {
+        this.setState({ newItem: item, showEditor: true })
+    }
+
+    addExpenditure() {
+        let emptyExpenditure = new Expenditure();
+        emptyExpenditure.username = this.getUsername();
+        this.setState({
+            newItem: emptyExpenditure,
+            showEditor: true
+        })
     }
 
     doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-
+        this.setState({ isLoading: true });
         return fetch(`${API_HOST}/api/expenditures?limit=${this.state.expenditureLimit}`)
             .then(res => res.json())
             .then((data) => {
@@ -37,7 +77,8 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
                     expenditures: data.map((item: any) => {
                         item.amount = item.amount / 100
                         return item
-                    })
+                    }),
+                    isLoading: false
                 })
                 if (event) {
                     event.detail.complete()
@@ -64,9 +105,15 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
             .finally(() => (event.target as HTMLIonInfiniteScrollElement).complete())
     }
 
+    onSaveExpenditure(item: Expenditure) {
+        this.props.onEdit(item);
+        this.doRefresh();
+    }
+
     render() {
         return (
             <IonContent>
+                <IonLoading isOpen={this.state.isLoading} message="Laden..." />
                 <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
                     <IonRefresherContent></IonRefresherContent>
                 </IonRefresher>
@@ -96,12 +143,12 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
                                 </IonLabel>
                             </IonItem>
                             <IonItemOptions side="end">
-                                <IonItemOption color="primary" onClick={() => { document.querySelector('ion-item-sliding')!.closeOpened(); this.props.onEdit(expenditure) }}>
+                                <IonItemOption color="primary" onClick={() => { document.querySelector('ion-item-sliding')!.closeOpened(); this.editExpenditure(expenditure) }}>
                                     Bearbeiten
-                            </IonItemOption>
-                                <IonItemOption color="danger" onClick={() => { this.props.onDelete(expenditure) }}>
+                                </IonItemOption>
+                                <IonItemOption color="danger" onClick={() => { this.deleteExpenditure(expenditure) }}>
                                     Löschen
-                            </IonItemOption>
+                                </IonItemOption>
                             </IonItemOptions>
                         </IonItemSliding>
                     ))}
@@ -110,7 +157,21 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
                         </IonInfiniteScrollContent>
                     </IonInfiniteScroll>
                 </IonList>
-            </IonContent>
+
+                <ExpenditureEditor
+                    show={this.state.showEditor}
+                    onDismiss={() => { this.setState({ showEditor: false }) }}
+                    onSave={(e) => this.onSaveExpenditure(e)}
+                    userNames={this.props.userNames}
+                    onEdit={(e) => { this.setState({ newItem: e }); }}
+                    item={this.state.newItem} />
+
+                <IonFab vertical="bottom" horizontal="end" slot="fixed">
+                    <IonFabButton onClick={() => this.addExpenditure()}>
+                        <IonIcon icon={add} />
+                    </IonFabButton>
+                </IonFab>
+            </IonContent >
         );
     }
 }
