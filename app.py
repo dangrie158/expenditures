@@ -1,20 +1,38 @@
 
+import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
 from flask_marshmallow import Marshmallow
-from flask_cors import CORS
 
-import os
+_app = Flask(__name__, static_url_path='',
+             static_folder='Expenditures/build',)
 
-app = Flask(__name__, static_url_path='',
-            static_folder='Expenditures/build',)
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
+_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
     os.path.join(basedir, 'expenditures.sqlite')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(_app)
+ma = Marshmallow(_app)
 
-ma = Marshmallow(app)
-cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
+def setup_app():
+    from flask_marshmallow import Marshmallow
+    from flask_cors import CORS
+    from auth import Authenticator
+
+    cors = CORS(_app, resources={r"/*": {"origins": "*"}})
+
+    _app.config['BASIC_AUTH_FORCE'] = True
+    basic_auth = Authenticator(_app, db)
+
+
+_initialized = False
+
+
+def get_app():
+    global _initialized
+    if not _initialized:
+        setup_app()
+        _initialized = True
+    return _app

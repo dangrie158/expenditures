@@ -3,8 +3,10 @@ import datetime
 from sqlalchemy import func
 from flask import request, jsonify, send_from_directory
 
-from app import app, db
+from app import get_app, db
 from models import *
+
+app = get_app()
 
 
 @app.route('/')

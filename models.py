@@ -1,4 +1,5 @@
 import datetime
+from hashlib import sha256
 
 from sqlalchemy import event
 
@@ -55,6 +56,11 @@ class Expenditure(db.Model):
         db.session.add(Expenditure(username='Cram',
                                    amount=0, reason="Übertrag"))
         db.session.commit()
+
+
+class User(db.Model):
+    username = db.Column(db.String(80), primary_key=True)
+    password = db.Column(db.String(80))
 
 
 event.listen(Expenditure.__table__, 'after_create',
