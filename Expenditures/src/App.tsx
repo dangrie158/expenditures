@@ -36,7 +36,8 @@ export class App extends React.Component {
   static persistCredentials(username: string, password: string) {
     let expiry = new Date();
     expiry.setTime(expiry.getTime() + (2 * 356 * 24 * 60 * 60 * 1000));
-    document.cookie = `username=${username}; password=${password}; expires=${expiry.toUTCString()}`;
+    document.cookie = `username=${username}; expires=${expiry.toUTCString()}`;
+    document.cookie = `password=${password}; expires=${expiry.toUTCString()}`;
   }
 
   static loadCredentials() {
