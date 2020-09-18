@@ -5,6 +5,7 @@ from flask import request
 from flask_basicauth import BasicAuth
 
 from models import User
+from app import db
 
 
 class Authenticator(BasicAuth):
@@ -26,8 +27,19 @@ class Authenticator(BasicAuth):
     def check_credentials(self, username, password):
         user = User.query.get(username)
         if user is not None:
-            hashed_pw = b64encode(sha256(password.encode()).digest()).decode()
+            hashed_pw = Authenticator.hash_password(password)
             if hashed_pw == user.password:
                 return True
 
         return False
+
+    @staticmethod
+    def hash_password(password):
+        return b64encode(sha256(password.encode()).digest()).decode()
+
+    @staticmethod
+    def add_user(username, password):
+        hashed_pw = Authenticator.hash_password(password)
+        new_user = User(username=username, password=hashed_pw)
+        db.session.add(new_user)
+        db.session.commit()
