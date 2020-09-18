@@ -1,17 +1,15 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonItem, IonLabel, IonButtons, IonModal, IonButton, IonInput, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonImg, IonThumbnail } from '@ionic/react';
-import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonImg, IonThumbnail } from '@ionic/react';
+import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
-import { FormEvent } from 'react';
-import { API_HOST } from '../App'
+import { App, API_HOST } from '../App'
 import { Expenditure } from '../models'
 import { RouteComponentProps } from "react-router-dom";
 
 import { ExpenditureList } from './ExpenditureList';
 
-class Home extends React.Component<RouteComponentProps> {
+export class Home extends React.Component<RouteComponentProps> {
   state = {
-    userName: this.getUsername(),
-    userNameIsSet: this.getUsername() !== "",
+    userName: App.loadCredentials().username,
     availableUserNames: Array<string>(),
     balance: 0
   };
@@ -25,21 +23,6 @@ class Home extends React.Component<RouteComponentProps> {
       newItem: item, showModal: true
     })
     this.doRefresh();
-  }
-
-  saveUsername(username: string) {
-    let expiry = new Date();
-    expiry.setTime(expiry.getTime() + (2 * 356 * 24 * 60 * 60 * 1000));
-    document.cookie = `username=${username}; expires=${expiry.toUTCString()}`;
-  }
-
-  getUsername() {
-    let userName = document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
-
-    //renew cookie
-    this.saveUsername(userName);
-
-    return userName
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
@@ -63,24 +46,6 @@ class Home extends React.Component<RouteComponentProps> {
       .catch(console.error)
   }
 
-  handleChangeUsername(event: CustomEvent<InputChangeEventDetail>) {
-    this.setState({
-      userName: event.detail.value
-    });
-  }
-
-  handleSubmitUsername(event: FormEvent) {
-    event.preventDefault();
-
-    this.saveUsername(this.state.userName)
-    this.setState({ userNameIsSet: true })
-  }
-
-  showEmptyModal() {
-    let emptyExpenditure = new Expenditure()
-    emptyExpenditure.username = this.state.userName;
-    this.setState({ showModal: true, newItem: emptyExpenditure });
-  }
 
   render() {
     return (
@@ -113,24 +78,7 @@ class Home extends React.Component<RouteComponentProps> {
             userNames={this.state.availableUserNames} />
         </IonContent>
 
-        <IonModal isOpen={!this.state.userNameIsSet}>
-          <form onSubmit={(e) => this.handleSubmitUsername(e)}>
-            <IonHeader translucent>
-              <IonToolbar>
-                <IonTitle>Nutzer eintragen</IonTitle>
-                <IonButtons slot="end">
-                  <IonButton color="primary" type="submit">Speichern</IonButton>
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent fullscreen>
-              <IonItem>
-                <IonLabel>Nutzer</IonLabel>
-                <IonInput required={true} onIonChange={(e) => this.handleChangeUsername(e)}></IonInput>
-              </IonItem>
-            </IonContent>
-          </form>
-        </IonModal>
+
       </IonPage >
     );
   }

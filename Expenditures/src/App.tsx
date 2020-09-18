@@ -1,8 +1,9 @@
 import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet } from '@ionic/react';
+import { IonApp, IonPage, IonRouterOutlet } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import Home from './pages/Home';
+import { Home } from './pages/Home';
+import { Login } from './Login';
 import { TagOverview, TagDetail } from './pages/Tags';
 
 /* Core CSS required for Ionic components to work properly */
@@ -26,22 +27,88 @@ import './theme/variables.css';
 
 export const API_HOST = process.env.NODE_ENV === "development" ? `http://${window.location.hostname}:5000` : ""
 
-class App extends React.Component {
+export class App extends React.Component {
+
+  state = {
+    credentials: App.loadCredentials()
+  }
+
+  static persistCredentials(username: string, password: string) {
+    let expiry = new Date();
+    expiry.setTime(expiry.getTime() + (2 * 356 * 24 * 60 * 60 * 1000));
+    document.cookie = `username=${username}; password=${password}; expires=${expiry.toUTCString()}`;
+  }
+
+  static loadCredentials() {
+    let username = document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
+    let password = document.cookie.replace(/(?:(?:^|.*;\s*)password\s*=\s*([^;]*).*$)|^.*$/, "$1")
+
+    //renew cookie
+    this.persistCredentials(username, password);
+
+    return {
+      username: username,
+      password: password
+    }
+  }
+
+  componentDidMount() {
+    let originalFetch = window.fetch;
+    window.fetch = (input: RequestInfo, init: RequestInit = {}) => {
+      init = {
+        ...init,
+        headers: {
+          ...init.headers,
+          'Authorization': `Basic ${window.btoa(`${this.state.credentials.username}:${this.state.credentials.password}`)}`
+        }
+      }
+
+      return originalFetch(input, init)
+        .then((res) => {
+          // login was unsuccessfull. clear the credentials
+          // to show the login form again
+          if (!res.ok && res.status === 401) {
+            this.setState({
+              credentials: {}
+            });
+          }
+          return res;
+        })
+    }
+  }
+
+  saveSessionCredentials(username: string, password: string) {
+    App.persistCredentials(username, password);
+    this.setState({
+      credentials: {
+        username: username,
+        password: password
+      }
+    })
+  }
 
   render() {
-    return (
-      <IonApp>
-        <IonReactRouter>
-          <IonRouterOutlet>
-            <Route path="/home" component={Home} exact={true} />
-            <Route path="/tags/:id/" component={TagDetail} />
-            <Route path="/tags/" component={TagOverview} />
-            <Route path="/" render={() => <Redirect to="/home" />} />
-          </IonRouterOutlet>
-        </IonReactRouter>
-      </IonApp>
-    );
+    if (this.state.credentials.username && this.state.credentials.password) {
+      return (
+        <IonApp>
+          <IonReactRouter>
+            <IonRouterOutlet>
+              <Route path="/home" component={Home} exact={true} />
+              <Route path="/tags/:id/" component={TagDetail} />
+              <Route path="/tags/" component={TagOverview} />
+              <Route path="/" render={() => <Redirect to="/home" />} />
+            </IonRouterOutlet>
+          </IonReactRouter>
+        </IonApp>
+      );
+    } else {
+      return (
+        <IonApp>
+          <IonPage>
+            <Login onSave={(u, p) => this.saveSessionCredentials(u, p)} />
+          </IonPage>
+        </IonApp>
+      );
+    }
   }
 }
-
-export default App;
