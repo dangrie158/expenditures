@@ -50,8 +50,16 @@ def update_expenditure(id):
 def get_expenditure():
     limit = request.args.get('limit')
     tag = request.args.get('tag')
-    month = request.args.get('month')
-    year = request.args.get('year')
+    date = request.args.get('date')
+
+    year = None
+    month = None
+    if date:
+        date_components = date.split("-")
+        if len(date_components) == 2:
+            year, month = date_components
+        else:
+            year = date_components[0]
 
     selected_expenditures = Expenditure.query \
         .order_by(Expenditure.created_date.desc())
@@ -74,6 +82,30 @@ def get_expenditure():
 
     result = ExpenditureSchema(many=True).dump(selected_expenditures.all())
     return jsonify(result)
+
+
+@app.route("/api/expenditures/summary", methods=["GET"])
+def expenditure_summary():
+    total = db.session.query(func.sum(Expenditure.amount)) \
+        .all()[0][0]
+
+    result_year = db.session.query(func.strftime("%Y", Expenditure.created_date), func.sum(Expenditure.amount)) \
+        .group_by(func.strftime("%Y", Expenditure.created_date)) \
+        .order_by(Expenditure.created_date.desc()) \
+        .all()
+
+    current_year = datetime.date.today().year
+    result_month = db.session.query(func.strftime("%Y-%m", Expenditure.created_date), func.sum(Expenditure.amount)) \
+        .filter(func.strftime("%Y", Expenditure.created_date) == str(current_year)) \
+        .group_by(func.strftime("%Y-%m", Expenditure.created_date)) \
+        .order_by(Expenditure.created_date.desc()) \
+        .all()
+
+    return jsonify({
+        "total": total,
+        "by_year": result_year,
+        "by_month": result_month
+    })
 
 
 @app.route("/api/expenditures/<id>", methods=["DELETE"])
@@ -106,10 +138,16 @@ def tag_detail(id):
 
     tag = Tag.query.get(id)
 
+    total = db.session.query(func.sum(Expenditure.amount)) \
+        .join(tags, tags.columns.expenditure_id == Expenditure.id) \
+        .filter(tags.columns.tag_id == id) \
+        .all()[0][0]
+
     result_year = db.session.query(func.strftime("%Y", Expenditure.created_date), func.sum(Expenditure.amount)) \
         .join(tags, tags.columns.expenditure_id == Expenditure.id) \
         .filter(tags.columns.tag_id == id) \
         .group_by(func.strftime("%Y", Expenditure.created_date)) \
+        .order_by(Expenditure.created_date.desc()) \
         .all()
 
     current_year = datetime.date.today().year
@@ -118,10 +156,12 @@ def tag_detail(id):
         .filter(tags.columns.tag_id == id) \
         .filter(func.strftime("%Y", Expenditure.created_date) == str(current_year)) \
         .group_by(func.strftime("%Y-%m", Expenditure.created_date)) \
+        .order_by(Expenditure.created_date.desc()) \
         .all()
 
     return jsonify({
         **TagSchema().dump(tag),
+        "total": total,
         "by_year": result_year,
         "by_month": result_month
     })

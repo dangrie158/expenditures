@@ -4,7 +4,9 @@ import { IonApp, IonPage, IonRouterOutlet } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Home } from './pages/Home';
 import { Login } from './Login';
-import { TagOverview, TagDetail } from './pages/Tags';
+import { TagDetail } from './pages/Tags';
+import { SummaryOverview } from './pages/Summary';
+import { Expenditures } from './pages/Expenditures';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -96,7 +98,8 @@ export class App extends React.Component {
             <IonRouterOutlet>
               <Route path="/home" component={Home} exact={true} />
               <Route path="/tags/:id/" component={TagDetail} />
-              <Route path="/tags/" component={TagOverview} />
+              <Route path="/summary/" component={SummaryOverview} />
+              <Route path="/expenditures/" component={Expenditures} />
               <Route path="/" render={() => <Redirect to="/home" />} />
             </IonRouterOutlet>
           </IonReactRouter>

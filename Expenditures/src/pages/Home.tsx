@@ -5,7 +5,7 @@ import { App, API_HOST } from '../App'
 import { Expenditure } from '../models'
 import { RouteComponentProps } from "react-router-dom";
 
-import { ExpenditureList } from './ExpenditureList';
+import { ExpenditureList } from '../components/ExpenditureList';
 
 export class Home extends React.Component<RouteComponentProps> {
   state = {
@@ -46,7 +46,6 @@ export class Home extends React.Component<RouteComponentProps> {
       .catch(console.error)
   }
 
-
   render() {
     return (
       <IonPage>
@@ -60,7 +59,7 @@ export class Home extends React.Component<RouteComponentProps> {
         </IonHeader>
         <IonContent fullscreen className="ion-padding" style={{ "--padding-start": 0, "--padding-end": 0 }}>
           <IonCard
-            routerLink="/tags/"
+            routerLink="/summary/"
             style={{ "bottom": "0", "position": "fixed", "width": "calc(100% - 4em)", "margin": "2em" }}
             routerDirection="forward"
             slot="fixed"
@@ -75,7 +74,9 @@ export class Home extends React.Component<RouteComponentProps> {
             onEdit={(e) => this.editExpenditure(e)}
             onDelete={(e) => this.doRefresh()}
             onTagClick={(tag) => this.props.history.push(`/tags/${tag.id}`)}
-            userNames={this.state.availableUserNames} />
+            userNames={this.state.availableUserNames}
+            allowEdit={true}
+            allowAdd={true} />
         </IonContent>
 
 

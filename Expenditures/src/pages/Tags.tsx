@@ -1,65 +1,10 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider, IonListHeader } from '@ionic/react';
+import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { API_HOST } from '../App'
 import { Tag } from '../models'
 import { RouteComponentProps } from "react-router-dom";
-
-export class TagOverview extends React.Component {
-  state = {
-    tags: Array<Tag>(),
-  }
-
-  componentDidMount() {
-    this.doRefresh()
-  }
-
-  doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    fetch(`${API_HOST}/api/tags/summary`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          tags: data
-        })
-      })
-      .catch(console.log)
-  }
-
-  render() {
-    return (
-      <IonPage>
-        <IonHeader>
-          <IonToolbar>
-            <IonButtons slot="start">
-              <IonBackButton />
-            </IonButtons>
-            <IonTitle>Ausgaben</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent fullscreen className="ion-padding">
-          <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
-            <IonRefresherContent></IonRefresherContent>
-          </IonRefresher>
-          <IonList>
-            {this.state.tags.map((tag) => (
-              <IonItem routerLink={"/tags/" + tag.id} routerDirection="forward" key={tag.id}>
-                <IonLabel position="fixed">
-                  {tag.name}
-                </IonLabel>
-                <IonIcon color={tag.color} icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
-                <IonLabel slot="end" color="success" position="fixed">
-                  {(tag.sum! / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                </IonLabel>
-              </IonItem>
-            ))}
-          </IonList>
-
-        </IonContent>
-
-      </IonPage >
-    );
-  }
-}
+import SummaryList from '../components/SummaryList';
 
 interface TagDetailProps extends RouteComponentProps<{
   id: string;
@@ -104,9 +49,8 @@ export class TagDetail extends React.Component<TagDetailProps> {
             </IonButtons>
             <IonTitle>
               <IonLabel>
-                {this.state.tag.name}
+                Ausgaben für: {this.state.tag.name}
               </IonLabel>
-              <IonIcon color={this.state.tag.color} icon={require(`ionicons/icons/imports/${this.state.tag.icon}.js`)}></IonIcon>
             </IonTitle>
           </IonToolbar>
         </IonHeader>
@@ -114,47 +58,16 @@ export class TagDetail extends React.Component<TagDetailProps> {
           <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>
-          <IonList>
-            <IonListHeader>
-              <IonLabel>Zusammenfassung</IonLabel>
-            </IonListHeader>
-
-            <IonItemGroup>
-              <IonItemDivider>
-                <IonLabel>Monatliche Ausgaben</IonLabel>
-              </IonItemDivider>
-              {this.state.tag.by_month!.map((entry) => (
-                <IonItem key={entry[0]}>
-                  <IonLabel>
-                    {new Date(Date.parse(entry[0])).toLocaleString(undefined, { month: "long", year: "numeric" })}
-                  </IonLabel>
-                  <IonLabel slot="end" color="success" position="fixed">
-                    {(entry[1] / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                  </IonLabel>
-                </IonItem>
-              ))}
-            </IonItemGroup>
-
-            <IonItemGroup>
-              <IonItemDivider>
-                <IonLabel>Jährliche Ausgaben</IonLabel>
-              </IonItemDivider>
-              {this.state.tag.by_year!.map((entry) => (
-                <IonItem key={entry[0]}>
-                  <IonLabel position="fixed">
-                    {new Date(Date.parse(entry[0])).toLocaleString(undefined, { year: "numeric" })}
-                  </IonLabel>
-                  <IonLabel slot="end" color="success" position="fixed">
-                    {(entry[1] / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                  </IonLabel>
-                </IonItem>
-              ))}
-
-            </IonItemGroup>
-          </IonList>
-
+          <IonCard color={this.state.tag.color}>
+            <IonCardHeader class="ion-text-center">
+              <IonIcon style={{ "fontSize": "4rem" }} icon={require(`ionicons/icons/imports/${this.state.tag.icon}.js`)} />
+              <IonCardTitle>{this.state.tag.name}</IonCardTitle>
+              <IonCardSubtitle>Ausgaben gesamt</IonCardSubtitle>
+              <IonCardTitle>{(this.state.tag.total! / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>
+            </IonCardHeader>
+          </IonCard>
+          <SummaryList summary={this.state.tag} />
         </IonContent>
-
       </IonPage >
     );
   }
