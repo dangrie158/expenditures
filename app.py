@@ -1,5 +1,6 @@
 
 import os
+import re
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -23,8 +24,8 @@ def setup_app():
 
     cors = CORS(_app, resources={r"/*": {"origins": "*"}})
 
-    _app.config['BASIC_AUTH_FORCE'] = True
-    basic_auth = Authenticator(_app, db)
+    basic_auth = Authenticator(
+        _app, db, enforce_paths=(re.compile(r'.*/api/.*'), ))
 
 
 _initialized = False

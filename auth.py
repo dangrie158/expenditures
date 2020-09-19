@@ -9,10 +9,23 @@ from app import db
 
 
 class Authenticator(BasicAuth):
-    def __init__(self, app, db):
+    def __init__(self, app, db, enforce_paths):
         super().__init__(app)
         self.app = app
         self.db = db
+        self.enforce_paths = enforce_paths
+
+    def init_app(self, app):
+        super().init_app(app)
+
+        @app.before_request
+        def require_basic_auth():
+            if self.authenticate():
+                return
+
+            for path in self.enforce_paths:
+                if path.match(request.url):
+                    return self.challenge()
 
     def authenticate(self):
         auth = request.authorization
