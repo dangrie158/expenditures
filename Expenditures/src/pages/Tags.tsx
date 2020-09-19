@@ -1,4 +1,4 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle } from '@ionic/react';
+import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonLoading } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { API_HOST } from '../App'
@@ -12,30 +12,43 @@ interface TagDetailProps extends RouteComponentProps<{
 
 export class TagDetail extends React.Component<TagDetailProps> {
   state = {
-    tag: new Tag()
-  }
-
-  tagId: number = -1
-
-  constructor(props: any) {
-    super(props);
-    this.tagId = props.match.params.id
+    tag: new Tag(),
+    isLoading: true,
+    tagId: ""
   }
 
   componentDidMount() {
-    this.doRefresh()
+    console.log(this.props.match.params.id)
+    this.setState({ tagId: this.props.match.params.id }, () => {
+      this.doRefresh();
+    })
+  }
+
+  componentDidUpdate(prevProps: TagDetailProps) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
+      this.setState({
+        tagId: this.props.match.params.id
+      }, () => {
+        this.doRefresh()
+      })
+    }
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    if (this.tagId >= 0) {
-      fetch(`${API_HOST}/api/tags/${this.tagId}`)
+    if (this.state.tagId !== "") {
+      this.setState({ isLoading: true })
+      fetch(`${API_HOST}/api/tags/${this.state.tagId}`)
         .then(res => res.json())
         .then((data) => {
+          console.log(data)
           this.setState({
             tag: data
           })
         })
         .catch(console.error)
+        .finally(() => {
+          this.setState({ isLoading: false })
+        })
     }
   }
 
@@ -55,6 +68,7 @@ export class TagDetail extends React.Component<TagDetailProps> {
           </IonToolbar>
         </IonHeader>
         <IonContent fullscreen className="ion-padding">
+          <IonLoading isOpen={this.state.isLoading} message="Laden..." />
           <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>

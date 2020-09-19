@@ -1,4 +1,4 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider } from '@ionic/react';
+import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider, IonLoading } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { API_HOST } from '../App'
@@ -8,7 +8,8 @@ import { SummaryList } from '../components/SummaryList'
 export class SummaryOverview extends React.Component {
   state = {
     tags: Array<Tag>(),
-    summary: new Summary()
+    summary: new Summary(),
+    isLoading: true
   }
 
   componentDidMount() {
@@ -16,23 +17,29 @@ export class SummaryOverview extends React.Component {
   }
 
   doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    fetch(`${API_HOST}/api/tags/summary`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          tags: data
-        })
-      })
-      .catch(console.error)
+    this.setState({ isLoading: true });
 
-    fetch(`${API_HOST}/api/expenditures/summary`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          summary: data
+    Promise.all([
+      fetch(`${API_HOST}/api/tags/summary`)
+        .then(res => res.json())
+        .then((data) => {
+          this.setState({
+            tags: data
+          })
         })
-      })
-      .catch(console.error)
+        .catch(console.error),
+
+      fetch(`${API_HOST}/api/expenditures/summary`)
+        .then(res => res.json())
+        .then((data) => {
+          this.setState({
+            summary: data
+          })
+        })
+        .catch(console.error)
+    ]).finally(() => {
+      this.setState({ isLoading: false });
+    })
   }
 
   render() {
@@ -47,6 +54,7 @@ export class SummaryOverview extends React.Component {
           </IonToolbar>
         </IonHeader>
         <IonContent fullscreen className="ion-padding">
+          <IonLoading isOpen={this.state.isLoading} message="Laden..." />
           <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
             <IonRefresherContent></IonRefresherContent>
           </IonRefresher>

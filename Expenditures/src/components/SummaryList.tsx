@@ -12,14 +12,24 @@ export class SummaryList extends React.Component<SummaryListProps> {
         max_year: 0
     }
 
-    static getDerivedStateFromProps(props: SummaryListProps, _: any) {
-        const max_month = Math.max(...props.summary.by_month.map((date: [any, number]) => date[1]));
-        const max_year = Math.max(...props.summary.by_year.map(((date: [any, number]) => date[1])));
+    componentDidMount() {
+        this.doRefresh()
+    }
 
-        return {
+    componentDidUpdate(preProps: SummaryListProps) {
+        if (this.props.summary !== preProps.summary) {
+            this.doRefresh();
+        }
+    }
+
+    doRefresh() {
+        const max_month = Math.max(...this.props.summary.by_month.map((date: [any, number]) => date[1]));
+        const max_year = Math.max(...this.props.summary.by_year.map(((date: [any, number]) => date[1])));
+
+        this.setState({
             max_month: max_month,
             max_year: max_year
-        }
+        })
     }
 
     render() {

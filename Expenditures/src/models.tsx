@@ -8,8 +8,8 @@ export class Summary {
 export class Tag extends Summary {
     id: number = -1
     name: string = ""
-    color: string = "primary"
-    icon: string = "add"
+    color: string = ""
+    icon: string = "help"
     sum?: number = 0
 }
 
