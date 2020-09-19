@@ -18,7 +18,6 @@ export class TagDetail extends React.Component<TagDetailProps> {
   }
 
   componentDidMount() {
-    console.log(this.props.match.params.id)
     this.setState({ tagId: this.props.match.params.id }, () => {
       this.doRefresh();
     })
@@ -40,7 +39,6 @@ export class TagDetail extends React.Component<TagDetailProps> {
       fetch(`${API_HOST}/api/tags/${this.state.tagId}`)
         .then(res => res.json())
         .then((data) => {
-          console.log(data)
           this.setState({
             tag: data
           })
