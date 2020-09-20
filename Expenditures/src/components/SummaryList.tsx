@@ -32,6 +32,14 @@ export class SummaryList extends React.Component<SummaryListProps> {
         })
     }
 
+    getExpenditureLink(date: string) {
+        let params = [`date=${date}`]
+        if ((this.props.summary as Tag).id >= 0) {
+            params.push(`tag=${(this.props.summary as Tag).id}`)
+        }
+        return `/expenditures/?${params.join('&')}`
+    }
+
     render() {
         return (
             <IonList>
@@ -40,7 +48,7 @@ export class SummaryList extends React.Component<SummaryListProps> {
                         <IonLabel>Nach Monat</IonLabel>
                     </IonItemDivider>
                     {this.props.summary.by_month.map(([date, amount]) => (
-                        <IonItem routerLink={`/expenditures/?date=${date}&tag=${(this.props.summary as Tag).id}`} routerDirection="forward" key={`date-${date}`}>
+                        <IonItem routerLink={this.getExpenditureLink(date)} routerDirection="forward" key={`date-${date}`}>
                             <IonLabel position="fixed">
                                 {new Date(Date.parse(date)).toLocaleString(undefined, { month: "long" })}
                                 <p>
@@ -61,7 +69,7 @@ export class SummaryList extends React.Component<SummaryListProps> {
                         <IonLabel>Nach Jahr</IonLabel>
                     </IonItemDivider>
                     {this.props.summary.by_year.map(([date, amount]) => (
-                        <IonItem routerLink={`/expenditures/?date=${date}&tag=${(this.props.summary as Tag).id}`} routerDirection="forward" key={`date-${date}`}>
+                        <IonItem routerLink={this.getExpenditureLink(date)} routerDirection="forward" key={`date-${date}`}>
                             <IonLabel>
                                 {new Date(Date.parse(date)).toLocaleString(undefined, { year: "numeric" })}
                             </IonLabel>
@@ -75,7 +83,7 @@ export class SummaryList extends React.Component<SummaryListProps> {
                         </IonItem>
                     ))}
                 </IonItemGroup>
-            </IonList>
+            </IonList >
         );
     }
 }

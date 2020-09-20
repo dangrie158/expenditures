@@ -1,10 +1,11 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonBackButton, IonButtons, IonLabel, IonIcon } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonBackButton, IonButtons, IonLabel } from '@ionic/react';
 import React from 'react';
 import { API_HOST } from '../App'
 import { RouteComponentProps } from "react-router-dom";
 
 import { ExpenditureList } from '../components/ExpenditureList';
 import { Tag } from '../models';
+import NamedIcon from '../components/NamedIcon';
 
 export class Expenditures extends React.Component<RouteComponentProps> {
   state = {
@@ -56,7 +57,7 @@ export class Expenditures extends React.Component<RouteComponentProps> {
       tagId: queryParams.get("tag"),
       date: queryParams.get("date")
     }, () => {
-      if (this.state.tagId !== "") {
+      if (this.state.tagId !== undefined) {
         fetch(`${API_HOST}/api/tags/${this.state.tagId}`)
           .then(res => res.json())
           .then((data) => {
@@ -93,7 +94,7 @@ export class Expenditures extends React.Component<RouteComponentProps> {
             style={{ "position": "sticky" }}
             color={this.state.tag.color || 'dark'}>
             <IonCardHeader class="ion-text-center">
-              <IonIcon style={{ "fontSize": "4rem" }} icon={require(`ionicons/icons/imports/${(this.state.tagId && this.state.tag.icon) ? this.state.tag.icon : 'cash'}.js`)} />
+              <NamedIcon style={{ "fontSize": "4rem" }} name={this.state.tag.icon} />
               <IonCardSubtitle>Ausgaben {
                 this.state.date &&
                   this.state.date!.split('-').length > 1 ?

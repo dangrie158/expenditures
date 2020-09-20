@@ -1,10 +1,11 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonLoading } from '@ionic/react';
+import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLabel, IonButtons, IonRefresher, IonRefresherContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonLoading } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { API_HOST } from '../App'
 import { Tag } from '../models'
 import { RouteComponentProps } from "react-router-dom";
 import SummaryList from '../components/SummaryList';
+import NamedIcon from '../components/NamedIcon';
 
 interface TagDetailProps extends RouteComponentProps<{
   id: string;
@@ -72,7 +73,7 @@ export class TagDetail extends React.Component<TagDetailProps> {
           </IonRefresher>
           <IonCard color={this.state.tag.color}>
             <IonCardHeader class="ion-text-center">
-              <IonIcon style={{ "fontSize": "4rem" }} icon={require(`ionicons/icons/imports/${this.state.tag.icon}.js`)} />
+              <NamedIcon style={{ "fontSize": "4rem" }} name={this.state.tag.icon} />
               <IonCardTitle>{this.state.tag.name}</IonCardTitle>
               <IonCardSubtitle>Ausgaben gesamt</IonCardSubtitle>
               <IonCardTitle>{(this.state.tag.total! / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>

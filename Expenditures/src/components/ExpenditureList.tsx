@@ -1,10 +1,10 @@
-import { IonInfiniteScroll, IonLoading, IonFab, IonFabButton, IonInfiniteScrollContent, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonIcon, IonButton, IonRefresher, IonRefresherContent, IonText, IonContent } from '@ionic/react';
+import { IonInfiniteScroll, IonLoading, IonFab, IonFabButton, IonInfiniteScrollContent, IonList, IonItem, IonLabel, IonItemOptions, IonItemOption, IonItemSliding, IonButton, IonRefresher, IonRefresherContent, IonText, IonContent } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
-import { add } from 'ionicons/icons';
 import React from 'react';
 import { API_HOST } from '../App'
 import { Tag, Expenditure } from '../models'
 import { ExpenditureEditor } from './ExpenditureEditor';
+import NamedIcon from './NamedIcon';
 
 type ExpenditureListProps = {
     onEdit?: (item: Expenditure) => void;
@@ -143,7 +143,7 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
                                         {expenditure.tags.map((tag) => {
                                             return (
                                                 <IonButton color={tag.color} onClick={() => this.props.onTagClick(tag)} key={tag.id}>
-                                                    <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
+                                                    <NamedIcon name={tag.icon} />
                                                 </IonButton>
                                             );
                                         })}
@@ -179,7 +179,7 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
                 {this.props.allowAdd &&
                     <IonFab vertical="bottom" horizontal="end" slot="fixed">
                         <IonFabButton onClick={() => this.addExpenditure()}>
-                            <IonIcon icon={add} />
+                            <NamedIcon name="add" />
                         </IonFabButton>
                     </IonFab>
                 }

@@ -1,9 +1,10 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonIcon, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider, IonLoading } from '@ionic/react';
+import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider, IonLoading } from '@ionic/react';
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { API_HOST } from '../App'
 import { Tag, Summary } from '../models'
 import { SummaryList } from '../components/SummaryList'
+import NamedIcon from '../components/NamedIcon';
 
 export class SummaryOverview extends React.Component {
   state = {
@@ -65,7 +66,7 @@ export class SummaryOverview extends React.Component {
               </IonItemDivider>
               {this.state.tags.map((tag) => (
                 <IonItem routerLink={"/tags/" + tag.id} routerDirection="forward" key={tag.id}>
-                  <IonIcon color={tag.color} icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
+                  <NamedIcon color={tag.color} name={tag.icon} />
                   <IonLabel position="fixed">
                     {tag.name}
                   </IonLabel>

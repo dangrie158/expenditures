@@ -1,9 +1,10 @@
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonButtons, IonIcon, IonModal, IonButton, IonInput, IonSegment, IonSegmentButton } from '@ionic/react';
+import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonButtons, IonModal, IonButton, IonInput, IonSegment, IonSegmentButton } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
 import React from 'react';
 import { FormEvent } from 'react';
 import { API_HOST } from '../App'
 import { Tag, Expenditure } from '../models'
+import NamedIcon from './NamedIcon';
 
 type ExpenditureEditorProps = {
   show: boolean;
@@ -187,7 +188,7 @@ export class ExpenditureEditor extends React.Component<ExpenditureEditorProps> {
                       size="small"
                       style={{ "width": "40%", "margin": "0.4rem calc(20%/4)" }}>
                       <IonLabel>{tag.name}</IonLabel>
-                      <IonIcon icon={require(`ionicons/icons/imports/${tag.icon}.js`)}></IonIcon>
+                      <NamedIcon name={tag.icon} />
                     </IonButton>
                   );
                 })}

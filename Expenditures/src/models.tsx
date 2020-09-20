@@ -9,7 +9,7 @@ export class Tag extends Summary {
     id: number = -1
     name: string = ""
     color: string = ""
-    icon: string = "help"
+    icon: string = "cash"
     sum?: number = 0
 }
 
