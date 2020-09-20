@@ -3,7 +3,7 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonPage, IonRouterOutlet } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Home } from './pages/Home';
-import { Login } from './Login';
+import { Login } from './components/Login';
 import { TagDetail } from './pages/Tags';
 import { SummaryOverview } from './pages/Summary';
 import { Expenditures } from './pages/Expenditures';
@@ -116,3 +116,5 @@ export class App extends React.Component {
     }
   }
 }
+
+export default App;
