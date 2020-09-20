@@ -227,7 +227,7 @@ http://ionicframework.com/docs/theming/ */
     --ion-card-background: #1e1e1e;
   }
 
-  .ion-colorgit  {
+  .ion-color  {
     --background: var(--ion-color-base)
   }
 
