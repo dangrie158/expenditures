@@ -7,8 +7,7 @@ import { ExpenditureEditor } from './ExpenditureEditor';
 import NamedIcon from './NamedIcon';
 
 type ExpenditureListProps = {
-    onEdit?: (item: Expenditure) => void;
-    onDelete?: (item: Expenditure) => void;
+    onListChanged: () => void;
     onTagClick: (tag: Tag) => void;
     userNames?: Array<string>;
     tag?: String;
@@ -21,7 +20,7 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
     state = {
         showEditor: false,
         expenditures: Array<Expenditure>(),
-        expenditureLimit: 0,
+        expenditureLimit: 20,
         newItem: new Expenditure(),
         isLoading: false
     };
@@ -46,9 +45,6 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
         fetch(`${API_HOST}/api/expenditures/${item.id}`, { method: 'DELETE' })
             .then((_: Object) => {
                 this.doRefresh();
-                if (this.props.onDelete) {
-                    this.props.onDelete(item)
-                }
             })
             .catch(console.error)
     }
@@ -68,8 +64,28 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
 
     doRefresh(event?: CustomEvent<RefresherEventDetail>) {
         this.setState({ isLoading: true });
-        return this.searchNext()
+
+        let queryProps = [`limit=${this.state.expenditureLimit}`]
+
+        if (this.props.date !== undefined && this.props.date !== "") {
+            queryProps.push(`date=${this.props.date}`)
+        }
+
+        if (this.props.tag !== undefined && this.props.tag !== "undefined" && this.props.tag !== "" && this.props.tag !== "-1") {
+            queryProps.push(`tag=${this.props.tag}`)
+        }
+        return fetch(`${API_HOST}/api/expenditures?${queryProps.join("&")}`)
+            .then(res => res.json())
+            .then((data) => {
+                this.setState({
+                    expenditures: data.map((item: any) => {
+                        item.amount = item.amount / 100
+                        return item
+                    })
+                })
+            })
             .then(() => {
+                this.props.onListChanged();
                 this.setState({
                     isLoading: false
                 })
@@ -77,45 +93,21 @@ export class ExpenditureList extends React.Component<ExpenditureListProps> {
                     event.detail.complete()
                 }
             })
+            .catch(console.error)
     }
 
     searchNext(event?: CustomEvent) {
-        return new Promise<void>((resolve, reject) => {
-            this.setState({
-                expenditureLimit: this.state.expenditureLimit + 20
-            }, () => {
-                let queryProps = [`limit=${this.state.expenditureLimit}`]
-
-                if (this.props.date !== undefined && this.props.date !== "") {
-                    queryProps.push(`date=${this.props.date}`)
-                }
-
-                if (this.props.tag !== undefined && this.props.tag !== "undefined" && this.props.tag !== "" && this.props.tag !== "-1") {
-                    queryProps.push(`tag=${this.props.tag}`)
-                }
-                fetch(`${API_HOST}/api/expenditures?${queryProps.join("&")}`)
-                    .then(res => res.json())
-                    .then((data) => {
-                        this.setState({
-                            expenditures: data.map((item: any) => {
-                                item.amount = item.amount / 100
-                                return item
-                            })
-                        })
-                        resolve();
-                    })
-                    .catch(reject)
-                    .finally(() => {
-                        if (event) { (event.target as HTMLIonInfiniteScrollElement).complete() }
-                    })
-            });
+        this.setState({
+            expenditureLimit: this.state.expenditureLimit + 20
+        }, () => {
+            this.doRefresh()
+                .finally(() => {
+                    if (event) { (event.target as HTMLIonInfiniteScrollElement).complete() }
+                })
         })
     }
 
     onSaveExpenditure(item: Expenditure) {
-        if (this.props.onEdit) {
-            this.props.onEdit(item);
-        }
         this.doRefresh();
     }
 

@@ -114,6 +114,8 @@ export class Expenditures extends React.Component<RouteComponentProps> {
           </IonCard>
 
           <ExpenditureList
+
+            onListChanged={() => this.doRefresh()}
             onTagClick={(tag) => this.props.history.push(`/tags/${tag.id}`)}
             allowAdd={false}
             allowEdit={true}

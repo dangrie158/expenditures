@@ -2,7 +2,6 @@ import { IonHeader, IonPage, IonTitle, IonToolbar, IonCard, IonCardSubtitle, Ion
 import { RefresherEventDetail } from '@ionic/core';
 import React from 'react';
 import { App, API_HOST } from '../App'
-import { Expenditure } from '../models'
 import { RouteComponentProps } from "react-router-dom";
 
 import { ExpenditureList } from '../components/ExpenditureList';
@@ -15,13 +14,6 @@ export class Home extends React.Component<RouteComponentProps> {
   };
 
   componentDidMount() {
-    this.doRefresh();
-  }
-
-  editExpenditure(item: Expenditure) {
-    this.setState({
-      newItem: item, showModal: true
-    })
     this.doRefresh();
   }
 
@@ -59,8 +51,7 @@ export class Home extends React.Component<RouteComponentProps> {
         </IonHeader>
 
         <ExpenditureList
-          onEdit={(e) => this.editExpenditure(e)}
-          onDelete={(e) => this.doRefresh()}
+          onListChanged={() => this.doRefresh()}
           onTagClick={(tag) => this.props.history.push(`/tags/${tag.id}`)}
           userNames={this.state.availableUserNames}
           allowEdit={true}
