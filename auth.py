@@ -56,3 +56,10 @@ class Authenticator(BasicAuth):
         new_user = User(username=username, password=hashed_pw)
         db.session.add(new_user)
         db.session.commit()
+
+    @staticmethod
+    def change_password(username, password):
+        hashed_pw = Authenticator.hash_password(password)
+        user = User.query.get(username)
+        user.password = hashed_pw
+        db.session.commit()
