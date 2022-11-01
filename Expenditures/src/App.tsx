@@ -27,7 +27,7 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 
-export const API_HOST = process.env.NODE_ENV === "development" ? `http://${window.location.hostname}:5000` : ""
+export const API_HOST = process.env.NODE_ENV === "development" ? `http://${window.location.hostname}:5100` : ""
 
 export class App extends React.Component {
 
@@ -57,7 +57,7 @@ export class App extends React.Component {
 
   componentDidMount() {
     let originalFetch = window.fetch;
-    window.fetch = (input: RequestInfo, init: RequestInit = {}) => {
+    const patchedFetch = (input: RequestInfo, init: RequestInit = {}) => {
       init = {
         ...init,
         headers: {
@@ -78,6 +78,7 @@ export class App extends React.Component {
           return res;
         })
     }
+    window.fetch = patchedFetch as any;
   }
 
   saveSessionCredentials(username: string, password: string) {

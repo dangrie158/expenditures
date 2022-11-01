@@ -1,3 +1,4 @@
+from collections import Counter
 import datetime
 
 from sqlalchemy import func
@@ -132,6 +133,11 @@ def get_tags():
     result = TagSchema(many=True).dump(all_tags)
     return jsonify(result)
 
+@app.route("/api/shops", methods=["GET"])
+def get_shops():
+    all_expenditures = Expenditure.query.all()
+    result = Counter([expenditure.reason for expenditure in all_expenditures])
+    return jsonify(sorted(result))
 
 @app.route("/api/tags/<id>", methods=["GET"])
 def tag_detail(id):
@@ -192,7 +198,7 @@ def get_status():
         Expenditure.username, func.sum(Expenditure.amount)) \
         .group_by(Expenditure.username) \
         .all()
-    return jsonify(expenditure_sum)
+    return jsonify([tuple(row) for row in expenditure_sum])
 
 
 @app.route('/<path:path>')

@@ -1,6 +1,6 @@
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonButtons, IonModal, IonButton, IonInput, IonSegment, IonSegmentButton } from '@ionic/react';
 import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import { FormEvent } from 'react';
 import { API_HOST } from '../App'
 import { Tag, Expenditure } from '../models'
@@ -19,7 +19,8 @@ export class ExpenditureEditor extends React.Component<ExpenditureEditorProps> {
   state = {
     tags: Array<Tag>(),
     showModal: true,
-    isSaving: false
+    isSaving: false,
+    knownShops: []
   };
 
   componentDidMount() {
@@ -35,8 +36,8 @@ export class ExpenditureEditor extends React.Component<ExpenditureEditorProps> {
     this.props.item.amount = Number.parseFloat((event.detail.value || '0').replace(',', '.'))
   }
 
-  handleChangeReason(event: CustomEvent<InputChangeEventDetail>) {
-    this.props.item.reason = event.detail.value || '';
+  handleChangeReason(event: ChangeEvent<HTMLInputElement>) {
+    this.props.item.reason = event.target.value || '';
     this.props.onEdit(this.props.item);
   }
 
@@ -69,6 +70,15 @@ export class ExpenditureEditor extends React.Component<ExpenditureEditorProps> {
       .then((data) => {
         this.setState({
           tags: data
+        })
+      })
+      .catch(console.error)
+
+    fetch(`${API_HOST}/api/shops`)
+      .then(res => res.json())
+      .then((data) => {
+        this.setState({
+          knownShops: data
         })
       })
       .catch(console.error)
@@ -154,13 +164,17 @@ export class ExpenditureEditor extends React.Component<ExpenditureEditorProps> {
               </IonItem>
             <IonItem>
               <IonLabel>Grund</IonLabel>
-              <IonInput
+              <input
+                className="native-input sc-ion-input-md"
+                list="knownShops"
                 required={true}
                 value={this.props.item.reason}
-                onIonChange={(e) => this.handleChangeReason(e)}
-                placeholder="Shop oder Zweck"
-                autocapitalize="on" />
+                onChange={(e) => this.handleChangeReason(e)}
+                placeholder="Shop oder Zweck" />
             </IonItem>
+            <datalist id="knownShops">
+              { this.state.knownShops.map(shop => <option value={ shop }></option>) }
+            </datalist>
             <IonItem>
               <IonLabel>Gezahlt von</IonLabel>
               <IonSegment
