@@ -5,12 +5,13 @@ from sqlalchemy import event
 
 from app import db, ma
 
-tags = db.Table('tags',
-                db.Column('tag_id', db.Integer, db.ForeignKey(
-                    'tag.id'), primary_key=True),
-                db.Column('expenditure_id', db.Integer, db.ForeignKey(
-                    'expenditure.id'), primary_key=True)
-                )
+tags = db.Table(
+    "tags",
+    db.Column("tag_id", db.Integer, db.ForeignKey("tag.id"), primary_key=True),
+    db.Column(
+        "expenditure_id", db.Integer, db.ForeignKey("expenditure.id"), primary_key=True
+    ),
+)
 
 
 class Tag(db.Model):
@@ -21,14 +22,10 @@ class Tag(db.Model):
 
     @staticmethod
     def insert_initial_values(*args, **kwargs):
-        db.session.add(Tag(name='Lebensmittel',
-                           color='primary', icon="restaurant"))
-        db.session.add(Tag(name='Drogerie',
-                           color='secondary', icon="water"))
-        db.session.add(Tag(name='Aktivitäten',
-                           color='tertiary', icon="beer"))
-        db.session.add(Tag(name='Urlaub',
-                           color='success', icon="airplane"))
+        db.session.add(Tag(name="Lebensmittel", color="primary", icon="restaurant"))
+        db.session.add(Tag(name="Drogerie", color="secondary", icon="water"))
+        db.session.add(Tag(name="Aktivitäten", color="tertiary", icon="beer"))
+        db.session.add(Tag(name="Urlaub", color="success", icon="airplane"))
         db.session.commit()
 
 
@@ -38,10 +35,14 @@ class Expenditure(db.Model):
     amount = db.Column(db.Integer)
     _reason = db.Column("reason", db.String(120))
     created_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    tags = db.relationship(Tag, secondary=tags, lazy='subquery',
-                           backref=db.backref('expenditures', lazy=True))
+    tags = db.relationship(
+        Tag,
+        secondary=tags,
+        lazy="subquery",
+        backref=db.backref("expenditures", lazy=True),
+    )
 
-    @ property
+    @property
     def reason(self):
         return self._reason.title()
 
@@ -51,10 +52,8 @@ class Expenditure(db.Model):
 
     @staticmethod
     def insert_initial_values(*args, **kwargs):
-        db.session.add(Expenditure(username='Dani',
-                                   amount=0, reason="Übertrag"))
-        db.session.add(Expenditure(username='Cram',
-                                   amount=0, reason="Übertrag"))
+        db.session.add(Expenditure(username="Dani", amount=0, reason="Übertrag"))
+        db.session.add(Expenditure(username="Cram", amount=0, reason="Übertrag"))
         db.session.commit()
 
 
@@ -63,20 +62,18 @@ class User(db.Model):
     password = db.Column(db.String(80))
 
 
-event.listen(Expenditure.__table__, 'after_create',
-             Expenditure.insert_initial_values)
+event.listen(Expenditure.__table__, "after_create", Expenditure.insert_initial_values)
 
-event.listen(Tag.__table__, 'after_create',
-             Tag.insert_initial_values)
+event.listen(Tag.__table__, "after_create", Tag.insert_initial_values)
 
 
 class TagSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'name', 'icon', 'color')
+        fields = ("id", "name", "icon", "color")
 
 
 class ExpenditureSchema(ma.Schema):
     tags = ma.Nested(TagSchema, many=True)
 
     class Meta:
-        fields = ('id', 'username', 'amount', 'reason', 'created_date', 'tags')
+        fields = ("id", "username", "amount", "reason", "created_date", "tags")

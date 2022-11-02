@@ -32,9 +32,12 @@ class Authenticator(BasicAuth):
 
         return (
             # make sure to always allow OPTIONS requests for preflight-checks
-            request.method == "OPTIONS" or
-            (auth and auth.type == "basic" and
-             self.check_credentials(auth.username, auth.password))
+            request.method == "OPTIONS"
+            or (
+                auth
+                and auth.type == "basic"
+                and self.check_credentials(auth.username, auth.password)
+            )
         )
 
     def check_credentials(self, username, password):

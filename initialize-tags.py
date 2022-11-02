@@ -9,11 +9,22 @@ for e in Expenditure.query.all():
 
     default_tags = {str(t.id) for t in e.tags}
 
-    if e.reason.lower() in ("edeka", "kaufland", "rewe", "essen", "eier", "dm", "aldi", "lidl", "real", "netto"):
+    if e.reason.lower() in (
+        "edeka",
+        "kaufland",
+        "rewe",
+        "essen",
+        "eier",
+        "dm",
+        "aldi",
+        "lidl",
+        "real",
+        "netto",
+    ):
         new_tag = Tag.query.filter(Tag.name == "Lebensmittel").first()
         default_tags.add(str(new_tag.id))
 
-    if e.reason.lower() in ("dm", ):
+    if e.reason.lower() in ("dm",):
         new_tag = Tag.query.filter(Tag.name == "Drogerie").first()
         default_tags.add(str(new_tag.id))
 
@@ -34,6 +45,6 @@ for e in Expenditure.query.all():
 
     new_objects = [Tag.query.get(id) for id in new_tags]
     print(f"objects now tagged with {[n.name for n in new_objects]}")
-    print("\n"*3)
+    print("\n" * 3)
     e.tags = new_objects
     db.session.commit()
