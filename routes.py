@@ -144,7 +144,7 @@ def get_tags():
 def get_shops():
     all_expenditures = Expenditure.query.all()
     result = Counter([expenditure.reason for expenditure in all_expenditures])
-    return jsonify(sorted(result))
+    return jsonify(sorted(result.keys(), key=lambda k: result[k], reverse=True))
 
 
 @app.route("/api/tags/<id>", methods=["GET"])
