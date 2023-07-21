@@ -3,7 +3,7 @@
 source .env
 
 # Build the Frontend
-pushd Expenditures
+pushd frontend
 npm run build
 popd
 
