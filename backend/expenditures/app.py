@@ -13,12 +13,13 @@ _app = Flask(
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 _app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-    basedir, "expenditures.sqlite"
+    os.environ.get("EXPEDITURES_DB_PATH", "/var/expenditures/"),
+    "db.sqlite"
 )
 _app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(_app)
 ma = Marshmallow(_app)
-
+print(_app.config["SQLALCHEMY_DATABASE_URI"] )
 
 def setup_app():
     from auth import Authenticator
