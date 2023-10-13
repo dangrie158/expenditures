@@ -19,7 +19,6 @@ _app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
 _app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(_app)
 ma = Marshmallow(_app)
-print(_app.config["SQLALCHEMY_DATABASE_URI"] )
 
 def setup_app():
     from auth import Authenticator
@@ -28,9 +27,7 @@ def setup_app():
     CORS(_app, resources={r"/*": {"origins": "*"}})
     Authenticator(_app, db, enforce_paths=(re.compile(r".*/api/.*"),))
 
-
 _initialized = False
-
 
 def get_app():
     global _initialized

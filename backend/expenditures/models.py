@@ -72,3 +72,12 @@ class ExpenditureSchema(ma.Schema):
 
     class Meta:
         fields = ("id", "username", "amount", "reason", "created_date", "tags")
+
+
+class SummarySchema(ma.Schema):
+    total = ma.Number()
+    by_year = ma.List(ma.Tuple([ma.String, ma.Number]))
+    by_month = ma.List(ma.Tuple([ma.String, ma.Number]))
+
+    class Meta:
+        fields = ("total", "by_year", "by_month")

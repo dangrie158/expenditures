@@ -102,8 +102,8 @@ def expenditure_summary():
         .order_by(Expenditure.created_date.desc())
         .all()
     )
-
-    return jsonify({"total": total, "by_year": result_year, "by_month": result_month})
+    result = SummarySchema().dump({"total": total, "by_year": result_year, "by_month": result_month})
+    return jsonify(result)
 
 
 @app.route("/api/expenditures/<id>", methods=["DELETE"])
@@ -175,9 +175,11 @@ def tag_detail(id):
     return jsonify(
         {
             **TagSchema().dump(tag),
-            "total": total,
-            "by_year": result_year,
-            "by_month": result_month,
+            **SummarySchema().dump({
+                "total": total,
+                "by_year": result_year,
+                "by_month": result_month,
+            })
         }
     )
 
