@@ -25,7 +25,7 @@ import NamedIcon from "../components/NamedIcon";
 export default function SummaryOverview() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [summary, setSummary] = useState(new Summary());
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const authorizedFetch = useAuthorizedFetch();
 
   useEffect(() => {

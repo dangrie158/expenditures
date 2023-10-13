@@ -29,7 +29,7 @@ type TagDetailProps = RouteComponentProps<{
 
 export default function TagDetail(props: TagDetailProps) {
   const [tag, setTag] = useState(new Tag());
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const authorizedFetch = useAuthorizedFetch();
 
   useEffect(() => {
@@ -37,20 +37,14 @@ export default function TagDetail(props: TagDetailProps) {
   }, [props.match.params.id]);
 
   const doRefresh = async (event?: CustomEvent<RefresherEventDetail>) => {
-    const tagId = props.match.params.id;
-    if (tagId !== "") {
-      setIsLoading(true);
-      try {
-        console.log(`${API_HOST}/api/tags/${tagId}`);
-        const tag = await authorizedFetch<Tag>(`${API_HOST}/api/tags/${tagId}`);
-        if (tag !== undefined) {
-          setTag(tag);
-        }
-      } finally {
-        setIsLoading(false);
-        console.log("done");
-        event?.detail.complete();
-      }
+    setIsLoading(true);
+    const tagId = props.match.params.id!;
+    try {
+      const tag = await authorizedFetch<Tag>(`${API_HOST}/api/tags/${tagId}`);
+      setTag(tag ?? new Tag());
+    } finally {
+      setIsLoading(false);
+      event?.detail.complete();
     }
   };
 
