@@ -1,87 +1,88 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonLabel, IonButtons, IonRefresher, IonRefresherContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonLoading } from '@ionic/react';
-import { RefresherEventDetail } from '@ionic/core';
-import React from 'react';
-import { API_HOST } from '../App'
-import { Tag } from '../models'
+import {
+  IonBackButton,
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonLabel,
+  IonButtons,
+  IonRefresher,
+  IonRefresherContent,
+  IonCard,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonLoading,
+} from "@ionic/react";
+import { RefresherEventDetail } from "@ionic/core";
+import React, { useEffect, useState } from "react";
+import { API_HOST, useAuthorizedFetch } from "../backend-hooks";
+import { Tag } from "../models";
 import { RouteComponentProps } from "react-router-dom";
-import SummaryList from '../components/SummaryList';
-import NamedIcon from '../components/NamedIcon';
+import SummaryList from "../components/SummaryList";
+import NamedIcon from "../components/NamedIcon";
 
-interface TagDetailProps extends RouteComponentProps<{
+type TagDetailProps = RouteComponentProps<{
   id: string;
-}> { }
+}>;
 
-export class TagDetail extends React.Component<TagDetailProps> {
-  state = {
-    tag: new Tag(),
-    isLoading: true,
-    tagId: ""
-  }
+export default function TagDetail(props: TagDetailProps) {
+  const [tag, setTag] = useState(new Tag());
+  const [isLoading, setIsLoading] = useState(true);
+  const authorizedFetch = useAuthorizedFetch();
 
-  componentDidMount() {
-    this.setState({ tagId: this.props.match.params.id }, () => {
-      this.doRefresh();
-    })
-  }
+  useEffect(() => {
+    doRefresh();
+  }, [props.match.params.id]);
 
-  componentDidUpdate(prevProps: TagDetailProps) {
-    if (this.props.match.params.id !== prevProps.match.params.id) {
-      this.setState({
-        tagId: this.props.match.params.id
-      }, () => {
-        this.doRefresh()
-      })
+  const doRefresh = async (event?: CustomEvent<RefresherEventDetail>) => {
+    const tagId = props.match.params.id;
+    if (tagId !== "") {
+      setIsLoading(true);
+      try {
+        console.log(`${API_HOST}/api/tags/${tagId}`);
+        const tag = await authorizedFetch<Tag>(`${API_HOST}/api/tags/${tagId}`);
+        if (tag !== undefined) {
+          setTag(tag);
+        }
+      } finally {
+        setIsLoading(false);
+        console.log("done");
+        event?.detail.complete();
+      }
     }
-  }
+  };
 
-  doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    if (this.state.tagId !== "") {
-      this.setState({ isLoading: true })
-      fetch(`${API_HOST}/api/tags/${this.state.tagId}`)
-        .then(res => res.json())
-        .then((data) => {
-          this.setState({
-            tag: data
-          })
-        })
-        .catch(console.error)
-        .finally(() => {
-          this.setState({ isLoading: false })
-        })
-    }
-  }
-
-  render() {
-    return (
-      <IonPage>
-        <IonHeader>
-          <IonToolbar>
-            <IonButtons slot="start">
-              <IonBackButton />
-            </IonButtons>
-            <IonTitle>
-              <IonLabel>
-                Ausgaben für: {this.state.tag.name}
-              </IonLabel>
-            </IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent fullscreen className="ion-padding">
-          <IonLoading isOpen={this.state.isLoading} message="Laden..." />
-          <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
-            <IonRefresherContent></IonRefresherContent>
-          </IonRefresher>
-          <IonCard color={this.state.tag.color}>
-            <IonCardHeader class="ion-text-center">
-              <NamedIcon style={{ "fontSize": "4rem" }} name={this.state.tag.icon} />
-              <IonCardTitle>{this.state.tag.name}</IonCardTitle>
-              <IonCardSubtitle>Ausgaben gesamt</IonCardSubtitle>
-              <IonCardTitle>{(this.state.tag.total! / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>
-            </IonCardHeader>
-          </IonCard>
-          <SummaryList summary={this.state.tag} />
-        </IonContent>
-      </IonPage >
-    );
-  }
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton />
+          </IonButtons>
+          <IonTitle>
+            <IonLabel>Ausgaben für: {tag.name}</IonLabel>
+          </IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen className="ion-padding">
+        <IonLoading isOpen={isLoading} message="Laden..." />
+        <IonRefresher slot="fixed" onIonRefresh={event => doRefresh(event)}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>
+        <IonCard color={tag.color}>
+          <IonCardHeader class="ion-text-center">
+            <NamedIcon style={{ fontSize: "4rem" }} name={tag.icon} />
+            <IonCardTitle>{tag.name}</IonCardTitle>
+            <IonCardSubtitle>Ausgaben gesamt</IonCardSubtitle>
+            <IonCardTitle>
+              {((tag.total ?? 0) / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+            </IonCardTitle>
+          </IonCardHeader>
+        </IonCard>
+        <SummaryList summary={tag} />
+      </IonContent>
+    </IonPage>
+  );
 }

@@ -1,76 +1,79 @@
-import { IonHeader, IonPage, IonTitle, IonToolbar, IonCard, IonCardSubtitle, IonCardTitle, IonCardHeader, IonImg, IonThumbnail } from '@ionic/react';
-import { RefresherEventDetail } from '@ionic/core';
-import React from 'react';
-import { App, API_HOST } from '../App'
+import {
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonCardHeader,
+  IonImg,
+  IonThumbnail,
+} from "@ionic/react";
+import React, { useEffect, useState } from "react";
+import { API_HOST, useCredentials, useAuthorizedFetch } from "../backend-hooks";
 import { RouteComponentProps } from "react-router-dom";
+import ExpenditureList from "../components/ExpenditureList";
 
-import { ExpenditureList } from '../components/ExpenditureList';
+type UserStatus = [string, number];
+type CurrentStatus = [UserStatus, UserStatus];
 
-export class Home extends React.Component<RouteComponentProps> {
-  state = {
-    userName: App.loadCredentials().username,
-    availableUserNames: Array<string>(),
-    balance: 0
+export default function Home(props: RouteComponentProps) {
+  const [credentials] = useCredentials();
+  const [availableUsernames, setAvailableUsernames] = useState<string[]>([]);
+  const [balance, setBalance] = useState(0);
+  const authorizedFetch = useAuthorizedFetch();
+
+  useEffect(() => {
+    doRefresh();
+  }, []);
+
+  const doRefresh = async () => {
+    const currentStatus = await authorizedFetch<CurrentStatus>(`${API_HOST}/api/current-status`);
+    if (currentStatus) {
+      setAvailableUsernames(currentStatus.map((entry: UserStatus) => entry[0]));
+      const myBalance = currentStatus.find((item: UserStatus) => item[0] === credentials.username);
+      const otherBalance = currentStatus.find((item: UserStatus) => item[0] !== credentials.username);
+      if (myBalance !== undefined && otherBalance !== undefined) {
+        const balance = myBalance[1] - otherBalance[1];
+        setBalance(balance / 100);
+      } else {
+        console.error("did not find 2 users to calculate a sensible balance");
+      }
+    }
   };
 
-  componentDidMount() {
-    this.doRefresh();
-  }
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonThumbnail slot="start" style={{ marginLeft: "1rem" }}>
+            <IonImg src="/assets/icon/android-chrome-192x192.png" />
+          </IonThumbnail>
+          <IonTitle>Letzte Ausgaben</IonTitle>
+        </IonToolbar>
+      </IonHeader>
 
-  doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    fetch(`${API_HOST}/api/current-status`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          availableUserNames: data.map((item: Array<string>) => item[0])
-        })
-        return data
-      })
-      .then((data) => {
-        let myBalance = data.find((item: any) => item[0] === this.state.userName)
-        let otherBalance = data.find((item: any) => item[0] !== this.state.userName)
-        let balance = myBalance[1] - otherBalance[1]
-        this.setState({
-          balance: balance / 100
-        })
-        return data
-      })
-      .catch(console.error)
-  }
+      <ExpenditureList
+        onListChanged={() => doRefresh()}
+        onTagClick={tag => props.history.push(`/tags/${tag.id}`)}
+        userNames={availableUsernames}
+        allowEdit={true}
+        allowAdd={true}
+      />
 
-  render() {
-    return (
-      <IonPage>
-        <IonHeader>
-          <IonToolbar>
-            <IonThumbnail slot="start" style={{ "marginLeft": "1rem" }}>
-              <IonImg src="/assets/icon/android-chrome-192x192.png" />
-            </IonThumbnail>
-            <IonTitle>Letzte Ausgaben</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-
-        <ExpenditureList
-          onListChanged={() => this.doRefresh()}
-          onTagClick={(tag) => this.props.history.push(`/tags/${tag.id}`)}
-          userNames={this.state.availableUserNames}
-          allowEdit={true}
-          allowAdd={true} />
-
-        <IonCard
-          routerLink="/summary/"
-          style={{ "bottom": "0", "position": "absolute", "width": "calc(100% - 4em)", "margin": "2em" }}
-          routerDirection="forward"
-          slot="fixed"
-          color={this.state.balance < 0 ? "warning" : "success"} >
-          <IonCardHeader>
-            <IonCardSubtitle>Aktueller Stand</IonCardSubtitle>
-            <IonCardTitle>{this.state.balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>
-          </IonCardHeader>
-        </IonCard>
-      </IonPage >
-    );
-  }
+      <IonCard
+        routerLink="/summary/"
+        style={{ bottom: "0", position: "absolute", width: "calc(100% - 4em)", margin: "2em" }}
+        routerDirection="forward"
+        slot="fixed"
+        color={balance < 0 ? "warning" : "success"}
+      >
+        <IonCardHeader>
+          <IonCardSubtitle>Aktueller Stand</IonCardSubtitle>
+          <IonCardTitle>{balance.toLocaleString(undefined, { style: "currency", currency: "EUR" })}</IonCardTitle>
+        </IonCardHeader>
+      </IonCard>
+    </IonPage>
+  );
 }
-
-export default Home;

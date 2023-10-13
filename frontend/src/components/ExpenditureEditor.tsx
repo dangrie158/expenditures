@@ -1,10 +1,24 @@
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonItem, IonLabel, IonButtons, IonModal, IonButton, IonInput, IonSegment, IonSegmentButton } from '@ionic/react';
-import { RefresherEventDetail, InputChangeEventDetail } from '@ionic/core';
-import React, { ChangeEvent } from 'react';
-import { FormEvent } from 'react';
-import { API_HOST } from '../App'
-import { Tag, Expenditure } from '../models'
-import NamedIcon from './NamedIcon';
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  IonItem,
+  IonLabel,
+  IonButtons,
+  IonModal,
+  IonButton,
+  IonInput,
+  IonSegment,
+  IonSegmentButton,
+  SegmentChangeEventDetail,
+} from "@ionic/react";
+import { InputChangeEventDetail } from "@ionic/core";
+import React, { ChangeEvent, useEffect, useState } from "react";
+import { FormEvent } from "react";
+import { API_HOST, useAuthorizedFetch } from "../backend-hooks";
+import { Tag, Expenditure } from "../models";
+import NamedIcon from "./NamedIcon";
 
 type ExpenditureEditorProps = {
   show: boolean;
@@ -13,206 +27,194 @@ type ExpenditureEditorProps = {
   onEdit: (item: Expenditure) => void;
   userNames: Array<string>;
   item: Expenditure;
-}
+};
 
-export class ExpenditureEditor extends React.Component<ExpenditureEditorProps> {
-  state = {
-    tags: Array<Tag>(),
-    showModal: true,
-    isSaving: false,
-    knownShops: []
+export default function ExpenditureEditor(props: ExpenditureEditorProps) {
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [knownShops, setKnownShops] = useState([]);
+  const authorizedFetch = useAuthorizedFetch();
+  useEffect(() => {
+    doRefresh();
+  }, []);
+
+  const handleChangeAmount = (event: CustomEvent<InputChangeEventDetail>) => {
+    props.onEdit({
+      ...props.item,
+      amount: Number.parseFloat((event.detail.value ?? "0").replace(",", ".")),
+    });
   };
 
-  componentDidMount() {
-    this.doRefresh();
-  }
+  const handleChangeReason = (event: ChangeEvent<HTMLInputElement>) => {
+    props.onEdit({
+      ...props.item,
+      reason: event.target.value ?? "",
+    });
+  };
 
-  getUsername() {
-    let userName = document.cookie.replace(/(?:(?:^|.*;\s*)username\s*=\s*([^;]*).*$)|^.*$/, "$1")
-    return userName
-  }
+  const handleChangeUser = (event: CustomEvent<SegmentChangeEventDetail>) => {
+    props.onEdit({
+      ...props.item,
+      username: (event.detail.value ?? "") as string,
+    });
+  };
 
-  handleChangeAmount(event: CustomEvent<InputChangeEventDetail>) {
-    this.props.item.amount = Number.parseFloat((event.detail.value || '0').replace(',', '.'))
-  }
-
-  handleChangeReason(event: ChangeEvent<HTMLInputElement>) {
-    this.props.item.reason = event.target.value || '';
-    this.props.onEdit(this.props.item);
-  }
-
-  handleChangeUser(event: CustomEvent<InputChangeEventDetail>) {
-    this.props.item.username = event.detail.value!
-    this.props.onEdit(this.props.item);
-  }
-
-  handleToggleTag(tag: Tag) {
-    let oldTags = this.props.item.tags.map(t => t.name);
-    let index = oldTags.indexOf(tag.name);
-    let newTags = this.props.item.tags;
+  const handleToggleTag = (tag: Tag) => {
+    const oldTags = props.item.tags.map(tag => tag.name);
+    const index = oldTags.indexOf(tag.name);
+    const newTags = props.item.tags;
     if (index >= 0) {
-      newTags.splice(index, 1)
+      newTags.splice(index, 1);
     } else {
-      newTags.push(tag)
+      newTags.push(tag);
     }
 
-    this.props.item.tags = newTags;
-    this.props.onEdit(this.props.item);
-  }
-
-  doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    this.setState({
-      isLoading: true
+    props.onEdit({
+      ...props.item,
+      tags: newTags,
     });
+  };
 
-    fetch(`${API_HOST}/api/tags`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          tags: data
-        })
-      })
-      .catch(console.error)
+  const doRefresh = async () => {
+    setIsSaving(true);
+    setTags((await authorizedFetch(`${API_HOST}/api/tags`)) ?? []);
+    setKnownShops((await authorizedFetch(`${API_HOST}/api/shops`)) ?? []);
+    setIsSaving(false);
+  };
 
-    fetch(`${API_HOST}/api/shops`)
-      .then(res => res.json())
-      .then((data) => {
-        this.setState({
-          knownShops: data
-        })
-      })
-      .catch(console.error)
-  }
+  const itemHasTag = (tag: { name: string }) => {
+    return props.item.tags.map(tag => tag.name).indexOf(tag.name) >= 0;
+  };
 
-  itemHasTag(tag: { name: string }) {
-    return this.props.item.tags.map(t => t.name).indexOf(tag.name) >= 0
-  }
-
-  handleSubmit(event: FormEvent) {
-    this.setState({
-      isSaving: true
-    });
+  const handleSubmit = async (event: FormEvent) => {
+    setIsSaving(true);
 
     event.preventDefault();
-    let item = this.props.item;
-    this.addOrUpdateExpenditure(item)
-      .then(() => {
-        this.props.onSave(item)
-        this.props.onDismiss()
-      })
-      .finally(() => {
-        this.setState({
-          isSaving: false
-        })
-      });
-  }
+    try {
+      await addOrUpdateExpenditure(props.item);
+      props.onSave(props.item);
+      props.onDismiss();
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-  addOrUpdateExpenditure(item: Expenditure) {
-    let newItem = {
+  const addOrUpdateExpenditure = async (item: Expenditure) => {
+    const newItem = {
       amount: (item.amount * 100).toFixed(0),
       reason: item.reason,
       username: item.username,
-      tags: item.tags
-    }
+      tags: item.tags,
+    };
 
-    let url = `${API_HOST}/api/expenditures`
-    let method = 'POST'
+    let url = `${API_HOST}/api/expenditures`;
+    let method = "POST";
     if (item.id !== -1) {
-      url = `${API_HOST}/api/expenditures/${item.id}`
-      method = 'PUT'
+      url = `${API_HOST}/api/expenditures/${item.id}`;
+      method = "PUT";
     }
 
-    return fetch(url, {
-      method: method,
-      headers: {
-        "Content-type": "application/json"
-      },
-      body: JSON.stringify(newItem)
-    })
-      .catch((e) => {
-        console.error(e);
-        alert("Speichern fehlgeschlagen");
-      })
-  }
+    try {
+      await authorizedFetch(url, {
+        method: method,
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify(newItem),
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Speichern fehlgeschlagen");
+    }
+  };
 
-  render() {
-    return (
-      <IonModal isOpen={this.props.show} onDidDismiss={this.props.onDismiss}>
-        <form onSubmit={(e) => this.handleSubmit(e)}>
-          <IonHeader translucent>
-            <IonToolbar>
-              <IonTitle>{this.props.item.id === -1 ? "Ausgabe eintragen" : "Ausgabe bearbeiten"}</IonTitle>
-              <IonButtons slot="start">
-                <IonButton onClick={this.props.onDismiss}>Abbrechen</IonButton>
-              </IonButtons>
-              <IonButtons slot="end">
-                <IonButton color="primary" type="submit" disabled={this.state.isSaving}>Speichern</IonButton>
-              </IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent fullscreen>
-            <IonItem>
-              <IonLabel>Betrag</IonLabel>
-              <IonInput
-                value={this.props.item.amount > 0 ? (this.props.item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
-                inputMode="decimal"
-                pattern="^[0-9]+([\.,][0-9]{1,2})?$"
-                required={true}
-                onIonBlur={(e) => this.props.onEdit(this.props.item)}
-                onIonChange={(e) => this.handleChangeAmount(e)}
-                placeholder="0.00" /> €
-              </IonItem>
-            <IonItem>
-              <IonLabel>Grund</IonLabel>
-              <input
-                className="native-input sc-ion-input-md"
-                list="knownShops"
-                required={true}
-                value={this.props.item.reason}
-                onChange={(e) => this.handleChangeReason(e)}
-                placeholder="Shop oder Zweck" />
-            </IonItem>
-            <datalist id="knownShops">
-              { this.state.knownShops.map(shop => <option value={ shop }></option>) }
-            </datalist>
-            <IonItem>
-              <IonLabel>Gezahlt von</IonLabel>
-              <IonSegment
-                slot="end"
-                style={{ "width": "50%" }}
-                onIonChange={(e) => this.handleChangeUser(e)} value={this.props.item.username}>
-                {this.props.userNames.map((name) => {
-                  return (
-                    <IonSegmentButton key={name} value={name}>
-                      <IonLabel>{name}</IonLabel>
-                    </IonSegmentButton>
-                  );
-                })}
-              </IonSegment>
-            </IonItem>
-            <IonItem>
-              <IonLabel className="ion-text-wrap">
-                {this.state.tags.map((tag) => {
-                  return (
-                    <IonButton
-                      key={tag.id}
-                      onClick={(evt) => this.handleToggleTag(tag)}
-                      color={tag.color}
-                      fill={this.itemHasTag(tag) ? "solid" : "outline"}
-                      size="small"
-                      style={{ "width": "40%", "margin": "0.4rem calc(20%/4)" }}>
-                      <IonLabel>{tag.name}</IonLabel>
-                      <NamedIcon name={tag.icon} />
-                    </IonButton>
-                  );
-                })}
-              </IonLabel>
-            </IonItem>
-          </IonContent>
-        </form>
-      </IonModal >
-    );
-  }
+  return (
+    <IonModal isOpen={props.show} onDidDismiss={props.onDismiss}>
+      <form onSubmit={e => handleSubmit(e)}>
+        <IonHeader translucent>
+          <IonToolbar>
+            <IonTitle>{props.item.id === -1 ? "Ausgabe eintragen" : "Ausgabe bearbeiten"}</IonTitle>
+            <IonButtons slot="start">
+              <IonButton onClick={props.onDismiss}>Abbrechen</IonButton>
+            </IonButtons>
+            <IonButtons slot="end">
+              <IonButton color="primary" type="submit" disabled={isSaving}>
+                Speichern
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent fullscreen>
+          <IonItem>
+            <IonInput
+              label="Betrag"
+              value={
+                props.item.amount > 0
+                  ? props.item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : ""
+              }
+              inputMode="decimal"
+              pattern="^[0-9]+([\.,][0-9]{1,2})?$"
+              required={true}
+              onIonChange={event => handleChangeAmount(event)}
+              placeholder="0.00"
+            />{" "}
+            €
+          </IonItem>
+          <IonItem>
+            <IonLabel>Grund</IonLabel>
+            <input
+              className="native-input sc-ion-input-md"
+              list="knownShops"
+              required={true}
+              value={props.item.reason}
+              onChange={event => handleChangeReason(event)}
+              placeholder="Shop oder Zweck"
+            />
+          </IonItem>
+          <datalist id="knownShops">
+            {knownShops.map(shop => (
+              <option key={shop} value={shop}></option>
+            ))}
+          </datalist>
+          <IonItem>
+            <IonLabel>Gezahlt von</IonLabel>
+            <IonSegment
+              slot="end"
+              style={{ width: "50%" }}
+              onIonChange={event => handleChangeUser(event)}
+              value={props.item.username}
+            >
+              {props.userNames.map(name => {
+                return (
+                  <IonSegmentButton key={name} value={name}>
+                    <IonLabel>{name}</IonLabel>
+                  </IonSegmentButton>
+                );
+              })}
+            </IonSegment>
+          </IonItem>
+          <IonItem>
+            <IonLabel className="ion-text-wrap">
+              {tags.map(tag => {
+                return (
+                  <IonButton
+                    key={tag.id}
+                    onClick={_event => handleToggleTag(tag)}
+                    color={tag.color}
+                    fill={itemHasTag(tag) ? "solid" : "outline"}
+                    size="small"
+                    style={{ width: "40%", margin: "0.4rem calc(20%/4)" }}
+                  >
+                    <IonLabel>{tag.name}</IonLabel>
+                    <NamedIcon name={tag.icon} />
+                  </IonButton>
+                );
+              })}
+            </IonLabel>
+          </IonItem>
+        </IonContent>
+      </form>
+    </IonModal>
+  );
 }
-
-export default ExpenditureEditor;

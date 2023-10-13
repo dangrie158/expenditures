@@ -1,23 +1,22 @@
-
 export class Summary {
-    total: number = 0;
-    by_year: Array<[string, number]> = []
-    by_month: Array<[string, number]> = []
+  total = 0;
+  by_year: [string, number][] = [];
+  by_month: [string, number][] = [];
 }
 
 export class Tag extends Summary {
-    id: number = -1
-    name: string = ""
-    color: string = ""
-    icon: string = "cash"
-    sum?: number = 0
+  id = -1;
+  name = "";
+  color = "";
+  icon = "cash";
+  sum? = 0;
 }
 
 export class Expenditure {
-    username: string = ""
-    amount: number = 0
-    reason: string = ""
-    id: number = -1
-    tags: Array<Tag> = []
-    created_date = ""
+  username = "";
+  amount = 0;
+  reason = "";
+  id = -1;
+  tags: Tag[] = [];
+  created_date = "";
 }

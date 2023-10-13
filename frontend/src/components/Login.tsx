@@ -1,63 +1,62 @@
-import { IonButton, IonButtons, IonContent, IonHeader, IonInput, IonItem, IonLabel, IonModal, IonTitle, IonToolbar } from '@ionic/react';
-import React, { FormEvent } from 'react';
-import { InputChangeEventDetail } from '@ionic/core'
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonModal,
+  IonTitle,
+  IonToolbar,
+} from "@ionic/react";
+import React, { FormEvent, useState } from "react";
 
 type LoginProps = {
-  onSave: (username: string, password: string) => void
+  onSave: (username: string, password: string) => void;
 };
 
-export class Login extends React.Component<LoginProps> {
+export default function Login({ onSave }: LoginProps) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  state = {
-    username: "",
-    password: ""
-  }
-
-  handleChangeUsername(event: CustomEvent<InputChangeEventDetail>) {
-    this.setState({
-      username: event.detail.value
-    });
-  }
-
-  handleChangePassword(event: CustomEvent<InputChangeEventDetail>) {
-    this.setState({
-      password: event.detail.value
-    });
-  }
-
-  handleSubmit(event: FormEvent) {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
+    onSave(username, password);
+  };
 
-    this.props.onSave(this.state.username, this.state.password)
-  }
+  return (
+    <IonModal isOpen={true}>
+      <form onSubmit={e => handleSubmit(e)}>
+        <IonHeader translucent>
+          <IonToolbar>
+            <IonTitle>Nutzer eintragen</IonTitle>
+            <IonButtons slot="end">
+              <IonButton color="primary" type="submit">
+                Speichern
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent fullscreen>
+          <IonItem>
+            <IonInput
+              label="Nutzer"
+              required={true}
+              onIonChange={event => setUsername(event.detail.value ?? "")}
+            ></IonInput>
+          </IonItem>
 
-  render() {
-    return (
-      <IonModal isOpen={true}>
-        <form onSubmit={(e) => this.handleSubmit(e)}>
-          <IonHeader translucent>
-            <IonToolbar>
-              <IonTitle>Nutzer eintragen</IonTitle>
-              <IonButtons slot="end">
-                <IonButton color="primary" type="submit">Speichern</IonButton>
-              </IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          <IonContent fullscreen>
-            <IonItem>
-              <IonLabel>Nutzer</IonLabel>
-              <IonInput required={true} onIonChange={(e) => this.handleChangeUsername(e)}></IonInput>
-            </IonItem>
-
-            <IonItem>
-              <IonLabel>Passwort</IonLabel>
-              <IonInput required={true} onIonChange={(e) => this.handleChangePassword(e)} type="password"></IonInput>
-            </IonItem>
-          </IonContent>
-        </form>
-      </IonModal>
-    );
-  }
+          <IonItem>
+            <IonLabel>Passwort</IonLabel>
+            <IonInput
+              required={true}
+              onIonChange={event => setPassword(event.detail.value ?? "")}
+              type="password"
+            ></IonInput>
+          </IonItem>
+        </IonContent>
+      </form>
+    </IonModal>
+  );
 }
-
-export default Login;

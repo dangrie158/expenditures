@@ -1,87 +1,84 @@
-import { IonBackButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonLabel, IonButtons, IonRefresher, IonRefresherContent, IonItemGroup, IonItemDivider, IonLoading } from '@ionic/react';
-import { RefresherEventDetail } from '@ionic/core';
-import React from 'react';
-import { API_HOST } from '../App'
-import { Tag, Summary } from '../models'
-import { SummaryList } from '../components/SummaryList'
-import NamedIcon from '../components/NamedIcon';
+import {
+  IonBackButton,
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonButtons,
+  IonRefresher,
+  IonRefresherContent,
+  IonItemGroup,
+  IonItemDivider,
+  IonLoading,
+} from "@ionic/react";
+import { RefresherEventDetail } from "@ionic/core";
+import React, { useEffect, useState } from "react";
+import { API_HOST, useAuthorizedFetch } from "../backend-hooks";
+import { Tag, Summary } from "../models";
+import SummaryList from "../components/SummaryList";
+import NamedIcon from "../components/NamedIcon";
 
-export class SummaryOverview extends React.Component {
-  state = {
-    tags: Array<Tag>(),
-    summary: new Summary(),
-    isLoading: true
-  }
+export default function SummaryOverview() {
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [summary, setSummary] = useState(new Summary());
+  const [isLoading, setIsLoading] = useState(true);
+  const authorizedFetch = useAuthorizedFetch();
 
-  componentDidMount() {
-    this.doRefresh()
-  }
+  useEffect(() => {
+    doRefresh();
+  }, []);
 
-  doRefresh(event?: CustomEvent<RefresherEventDetail>) {
-    this.setState({ isLoading: true });
+  const doRefresh = async (event?: CustomEvent<RefresherEventDetail>) => {
+    setIsLoading(true);
+    try {
+      setTags((await authorizedFetch(`${API_HOST}/api/tags/summary`)) ?? []);
+      const summary = await authorizedFetch<Summary>(`${API_HOST}/api/expenditures/summary`);
+      if (summary !== undefined) {
+        setSummary(summary);
+      }
+    } finally {
+      setIsLoading(false);
+      event?.detail.complete();
+    }
+  };
 
-    Promise.all([
-      fetch(`${API_HOST}/api/tags/summary`)
-        .then(res => res.json())
-        .then((data) => {
-          this.setState({
-            tags: data
-          })
-        })
-        .catch(console.error),
-
-      fetch(`${API_HOST}/api/expenditures/summary`)
-        .then(res => res.json())
-        .then((data) => {
-          this.setState({
-            summary: data
-          })
-        })
-        .catch(console.error)
-    ]).finally(() => {
-      this.setState({ isLoading: false });
-    })
-  }
-
-  render() {
-    return (
-      <IonPage>
-        <IonHeader>
-          <IonToolbar>
-            <IonButtons slot="start">
-              <IonBackButton />
-            </IonButtons>
-            <IonTitle>Ausgaben Übersicht</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent fullscreen className="ion-padding">
-          <IonLoading isOpen={this.state.isLoading} message="Laden..." />
-          <IonRefresher slot="fixed" onIonRefresh={(event) => this.doRefresh(event)}>
-            <IonRefresherContent></IonRefresherContent>
-          </IonRefresher>
-          <IonList style={{ "marginBottom": 0 }}>
-            <IonItemGroup>
-              <IonItemDivider>
-                <IonLabel>Nach Tag</IonLabel>
-              </IonItemDivider>
-              {this.state.tags.map((tag) => (
-                <IonItem routerLink={"/tags/" + tag.id} routerDirection="forward" key={tag.id}>
-                  <NamedIcon color={tag.color} name={tag.icon} />
-                  <IonLabel position="fixed">
-                    {tag.name}
-                  </IonLabel>
-                  <IonLabel slot="end" color="success" position="fixed">
-                    {(tag.sum! / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
-                  </IonLabel>
-                </IonItem>
-              ))}
-            </IonItemGroup>
-          </IonList>
-          <SummaryList summary={this.state.summary} />
-        </IonContent>
-      </IonPage >
-    );
-  }
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton />
+          </IonButtons>
+          <IonTitle>Ausgaben Übersicht</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen className="ion-padding">
+        <IonLoading isOpen={isLoading} message="Laden..." />
+        <IonRefresher slot="fixed" onIonRefresh={event => doRefresh(event)}>
+          <IonRefresherContent></IonRefresherContent>
+        </IonRefresher>
+        <IonList style={{ marginBottom: 0 }}>
+          <IonItemGroup>
+            <IonItemDivider>
+              <IonLabel>Nach Tag</IonLabel>
+            </IonItemDivider>
+            {tags.map(tag => (
+              <IonItem routerLink={"/tags/" + tag.id} routerDirection="forward" key={tag.id}>
+                <NamedIcon color={tag.color} name={tag.icon} />
+                <IonLabel position="fixed">{tag.name}</IonLabel>
+                <IonLabel slot="end" color="success" position="fixed">
+                  {((tag.sum ?? 0) / 100).toLocaleString(undefined, { style: "currency", currency: "EUR" })}
+                </IonLabel>
+              </IonItem>
+            ))}
+          </IonItemGroup>
+        </IonList>
+        <SummaryList summary={summary} />
+      </IonContent>
+    </IonPage>
+  );
 }
-
-export default SummaryOverview;
