@@ -2,9 +2,9 @@ from node:latest as frontend
 
 WORKDIR /frontend
 COPY ./frontend/package.json ./frontend/package-lock.json /frontend
-RUN npm install --legacy-peer-deps
+RUN npm install
 COPY frontend /frontend
-RUN NODE_OPTIONS=--openssl-legacy-provider npm run build
+RUN npm run build
 
 from python:3.10
 
