@@ -48,8 +48,8 @@ export default function Login({ onSave }: LoginProps) {
           </IonItem>
 
           <IonItem>
-            <IonLabel>Passwort</IonLabel>
             <IonInput
+              label="Passwort"
               required={true}
               onIonChange={event => setPassword(event.detail.value ?? "")}
               type="password"

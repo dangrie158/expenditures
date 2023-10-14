@@ -1,6 +1,6 @@
 import React from "react";
 import { Redirect, Route } from "react-router-dom";
-import { IonApp, IonPage, IonRouterOutlet, setupIonicReact } from "@ionic/react";
+import { AnimationBuilder, IonApp, IonPage, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import Home from "./pages/Home";
 
@@ -27,7 +27,19 @@ import { useCredentials } from "./backend-hooks";
 import TagDetail from "./pages/Tags";
 import SummaryOverview from "./pages/Summary";
 import Expenditures from "./pages/Expenditures";
+import { createAnimation, iosTransitionAnimation, setupConfig } from "@ionic/core";
 
+const animationBuilder: AnimationBuilder = (baseEl, opts) => {
+  if (opts.direction === "back") {
+    return createAnimation();
+  }
+  return iosTransitionAnimation(baseEl, opts);
+};
+
+setupConfig({
+  swipeBackEnabled: false,
+  navAnimation: animationBuilder,
+});
 setupIonicReact();
 
 export default function App() {
