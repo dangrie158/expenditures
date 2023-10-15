@@ -15,6 +15,10 @@ import {
   IonRefresherContent,
   IonText,
   IonContent,
+  IonToolbar,
+  IonSearchbar,
+  IonProgressBar,
+  SearchbarChangeEventDetail,
 } from "@ionic/react";
 import { RefresherEventDetail } from "@ionic/core";
 import React, { useEffect, useState } from "react";
@@ -38,6 +42,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
   const [showEditor, setShowEditor] = useState(false);
   const [expenditures, setExpenditures] = useState<Expenditure[]>([]);
   const [expenditureLimit, setExpendituresLimit] = useState(20);
+  const [searchQuery, setSearchQuery] = useState("");
   const [newItem, setNewItem] = useState(() => {
     const expenditure = new Expenditure();
     expenditure.username = credentials.username;
@@ -49,7 +54,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
 
   useEffect(() => {
     doRefresh();
-  }, [props.date, props.tag]);
+  }, [props.date, props.tag, searchQuery]);
 
   const deleteExpenditure = async (itemToDelete: Expenditure) => {
     await authorizedFetch(`${API_HOST}/api/expenditures/${itemToDelete.id}`, { method: "DELETE" });
@@ -73,6 +78,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
 
     const url = new URL(`${API_HOST}/api/expenditures`);
     url.searchParams.set("limit", expenditureLimit.toFixed());
+    url.searchParams.set("query", searchQuery);
 
     if (props.date !== undefined && props.date !== "") {
       url.searchParams.set("date", props.date);
@@ -106,9 +112,28 @@ export default function ExpenditureList(props: ExpenditureListProps) {
     }
   };
 
+  const search = async (event: CustomEvent<SearchbarChangeEventDetail>) => {
+    setSearchQuery(event.detail.value ?? "");
+  };
+
+  const clearSearch = async (event: CustomEvent) => {
+    setSearchQuery("");
+  };
+
   return (
     <IonContent>
-      <IonLoading isOpen={isLoading} message="Laden..." />
+      <IonToolbar>
+        <IonSearchbar
+          showCancelButton="focus"
+          debounce={100}
+          animated={true}
+          placeholder="Suchen"
+          enterkeyhint="search"
+          onIonChange={event => search(event)}
+          onIonCancel={event => clearSearch(event)}
+        ></IonSearchbar>
+        {isLoading ? <IonProgressBar type="indeterminate"></IonProgressBar> : ""}
+      </IonToolbar>
       <IonRefresher slot="fixed" onIonRefresh={event => doRefresh(event)}>
         <IonRefresherContent></IonRefresherContent>
       </IonRefresher>

@@ -5,7 +5,6 @@ import {
   IonHeader,
   IonInput,
   IonItem,
-  IonLabel,
   IonModal,
   IonTitle,
   IonToolbar,

@@ -47,6 +47,7 @@ def update_expenditure(id):
 @app.route("/api/expenditures", methods=["GET"])
 def get_expenditure():
     limit = request.args.get("limit")
+    query = request.args.get("query")
     tag = request.args.get("tag")
     date = request.args.get("date")
 
@@ -59,7 +60,11 @@ def get_expenditure():
         else:
             year = date_components[0]
 
-    selected_expenditures = Expenditure.query.order_by(Expenditure.created_date.desc())
+    selected_expenditures = Expenditure.query
+    if query is not None and query != "":
+        selected_expenditures = selected_expenditures.filter(Expenditure._reason.like('%' + query + '%'))
+
+    selected_expenditures = selected_expenditures.order_by(Expenditure.created_date.desc())
 
     if tag:
         selected_expenditures = selected_expenditures.join(
