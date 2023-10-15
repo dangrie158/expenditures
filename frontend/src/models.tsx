@@ -13,10 +13,12 @@ export class Tag extends Summary {
 }
 
 export class Expenditure {
-  username = "";
-  amount = 0;
-  reason = "";
-  id = -1;
-  tags: Tag[] = [];
-  created_date = "";
+  public amount = 0;
+  public reason = "";
+  public id = -1;
+  public tags: Tag[] = [];
+  public created_date: string;
+  constructor(public username: string) {
+    this.created_date = new Date().toISOString();
+  }
 }

@@ -19,7 +19,9 @@ def root():
 def add_expenditure():
     tags = request.json.pop("tags")
 
-    expenditure = Expenditure(**request.json)
+    expenditure_data = request.json
+    expenditure_data["created_date"] = datetime.datetime.fromisoformat(expenditure_data.pop("created_date"))
+    expenditure = Expenditure(**expenditure_data)
     for tag in tags:
         instance = Tag.query.filter(Tag.name == tag["name"]).first()
         expenditure.tags.append(instance)
@@ -62,7 +64,7 @@ def get_expenditure():
 
     selected_expenditures = Expenditure.query
     if query is not None and query != "":
-        selected_expenditures = selected_expenditures.filter(Expenditure._reason.like('%' + query + '%'))
+        selected_expenditures = selected_expenditures.filter(Expenditure._reason.like("%" + query + "%"))
 
     selected_expenditures = selected_expenditures.order_by(Expenditure.created_date.desc())
 
@@ -181,11 +183,13 @@ def tag_detail(id):
     return jsonify(
         {
             **TagSchema().dump(tag),
-            **SummarySchema().dump({
-                "total": total,
-                "by_year": result_year,
-                "by_month": result_month,
-            })
+            **SummarySchema().dump(
+                {
+                    "total": total,
+                    "by_year": result_year,
+                    "by_month": result_month,
+                }
+            ),
         }
     )
 

@@ -43,9 +43,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
   const [expenditureLimit, setExpendituresLimit] = useState(20);
   const [searchQuery, setSearchQuery] = useState("");
   const [newItem, setNewItem] = useState(() => {
-    const expenditure = new Expenditure();
-    expenditure.username = credentials.username;
-    expenditure.created_date = new Date().toISOString();
+    const expenditure = new Expenditure(credentials.username);
     return expenditure;
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -66,8 +64,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
   };
 
   const addExpenditure = () => {
-    const emptyExpenditure = new Expenditure();
-    emptyExpenditure.username = credentials.username;
+    const emptyExpenditure = new Expenditure(credentials.username);
     setNewItem(emptyExpenditure);
     setShowEditor(true);
   };
