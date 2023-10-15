@@ -41,6 +41,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
   const [newItem, setNewItem] = useState(() => {
     const expenditure = new Expenditure();
     expenditure.username = credentials.username;
+    expenditure.created_date = new Date().toISOString();
     return expenditure;
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +87,7 @@ export default function ExpenditureList(props: ExpenditureListProps) {
       setExpenditures(
         response.map((item: Expenditure) => {
           item.amount = item.amount / 100;
+          item.created_date = new Date(Date.parse(item.created_date)).toISOString();
           return item;
         })
       );

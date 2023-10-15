@@ -38,6 +38,7 @@ def update_expenditure(id):
     expenditure.username = request.json.pop("username")
     expenditure.reason = request.json.pop("reason")
     expenditure.amount = request.json.pop("amount")
+    expenditure.created_date = datetime.datetime.fromisoformat(request.json.pop("created_date"))
     db.session.commit()
 
     return jsonify(ExpenditureSchema().dump(expenditure))

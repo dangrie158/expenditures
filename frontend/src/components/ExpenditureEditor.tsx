@@ -12,6 +12,10 @@ import {
   IonSegment,
   IonSegmentButton,
   SegmentChangeEventDetail,
+  IonDatetimeButton,
+  IonDatetime,
+  IonPopover,
+  DatetimeChangeEventDetail,
 } from "@ionic/react";
 import { InputChangeEventDetail } from "@ionic/core";
 import React, { ChangeEvent, useEffect, useState } from "react";
@@ -75,6 +79,13 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
     });
   };
 
+  const handleChangeDate = (event: CustomEvent<DatetimeChangeEventDetail>) => {
+    props.onEdit({
+      ...props.item,
+      created_date: (event.detail.value ?? "") as string,
+    });
+  };
+
   const doRefresh = async () => {
     setIsSaving(true);
     setTags((await authorizedFetch(`${API_HOST}/api/tags`)) ?? []);
@@ -105,6 +116,7 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
       reason: item.reason,
       username: item.username,
       tags: item.tags,
+      created_date: item.created_date,
     };
 
     let url = `${API_HOST}/api/expenditures`;
@@ -193,6 +205,18 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
                 );
               })}
             </IonSegment>
+          </IonItem>
+          <IonItem>
+            <IonLabel>Datum</IonLabel>
+            <IonDatetimeButton datetime="datetime"></IonDatetimeButton>
+
+            <IonPopover keepContentsMounted={true}>
+              <IonDatetime
+                value={props.item.created_date}
+                onIonChange={event => handleChangeDate(event)}
+                id="datetime"
+              ></IonDatetime>
+            </IonPopover>
           </IonItem>
           <IonItem>
             <IonLabel className="ion-text-wrap">
