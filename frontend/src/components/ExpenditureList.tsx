@@ -1,6 +1,5 @@
 import {
   IonInfiniteScroll,
-  IonLoading,
   IonFab,
   IonFabButton,
   IonInfiniteScrollContent,

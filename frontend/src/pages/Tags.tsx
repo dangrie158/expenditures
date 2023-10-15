@@ -13,7 +13,7 @@ import {
   IonCardHeader,
   IonCardSubtitle,
   IonCardTitle,
-  IonLoading,
+  IonProgressBar,
 } from "@ionic/react";
 import { RefresherEventDetail } from "@ionic/core";
 import React, { useEffect, useState } from "react";
@@ -58,10 +58,10 @@ export default function TagDetail(props: TagDetailProps) {
           <IonTitle>
             <IonLabel>Ausgaben für: {tag.name}</IonLabel>
           </IonTitle>
+          {isLoading ? <IonProgressBar type="indeterminate"></IonProgressBar> : ""}
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen className="ion-padding">
-        <IonLoading isOpen={isLoading} message="Laden..." />
         <IonRefresher slot="fixed" onIonRefresh={event => doRefresh(event)}>
           <IonRefresherContent></IonRefresherContent>
         </IonRefresher>

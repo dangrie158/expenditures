@@ -13,7 +13,7 @@ import {
   IonRefresherContent,
   IonItemGroup,
   IonItemDivider,
-  IonLoading,
+  IonProgressBar,
 } from "@ionic/react";
 import { RefresherEventDetail } from "@ionic/core";
 import React, { useEffect, useState } from "react";
@@ -54,10 +54,10 @@ export default function SummaryOverview() {
             <IonBackButton />
           </IonButtons>
           <IonTitle>Ausgaben Übersicht</IonTitle>
+          {isLoading ? <IonProgressBar type="indeterminate"></IonProgressBar> : ""}
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen className="ion-padding">
-        <IonLoading isOpen={isLoading} message="Laden..." />
         <IonRefresher slot="fixed" onIonRefresh={event => doRefresh(event)}>
           <IonRefresherContent></IonRefresherContent>
         </IonRefresher>

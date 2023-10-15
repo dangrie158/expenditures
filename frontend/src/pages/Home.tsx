@@ -46,7 +46,7 @@ export default function Home(props: RouteComponentProps) {
   return (
     <IonPage>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar className="top-toolbar">
           <IonThumbnail slot="start" style={{ marginLeft: "1rem" }}>
             <IonImg src="/assets/icon/android-chrome-192x192.png" />
           </IonThumbnail>
