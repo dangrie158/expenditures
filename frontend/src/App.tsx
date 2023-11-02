@@ -28,6 +28,7 @@ import TagDetail from "./pages/Tags";
 import SummaryOverview from "./pages/Summary";
 import Expenditures from "./pages/Expenditures";
 import { createAnimation, iosTransitionAnimation, setupConfig } from "@ionic/core";
+import { register } from "./serviceWorkerRegistration";
 
 const animationBuilder: AnimationBuilder = (baseEl, opts) => {
   if (opts.direction === "back") {
@@ -41,6 +42,7 @@ setupConfig({
   navAnimation: animationBuilder,
 });
 setupIonicReact();
+register();
 
 export default function App() {
   const [credentials, setCredentials] = useCredentials();
