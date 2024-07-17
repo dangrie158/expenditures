@@ -31,43 +31,43 @@ import { createAnimation, iosTransitionAnimation, setupConfig } from "@ionic/cor
 import { register } from "./serviceWorkerRegistration";
 
 const animationBuilder: AnimationBuilder = (baseEl, opts) => {
-  if (opts.direction === "back") {
-    return createAnimation();
-  }
-  return iosTransitionAnimation(baseEl, opts);
+    if (opts.direction === "back") {
+        return createAnimation();
+    }
+    return iosTransitionAnimation(baseEl, opts);
 };
 
 setupConfig({
-  swipeBackEnabled: false,
-  navAnimation: animationBuilder,
+    swipeBackEnabled: false,
+    navAnimation: animationBuilder,
 });
 setupIonicReact();
 register();
 
 export default function App() {
-  const [credentials, setCredentials] = useCredentials();
+    const [credentials, setCredentials] = useCredentials();
 
-  if (credentials.username && credentials.password) {
-    return (
-      <IonApp>
-        <IonReactRouter>
-          <IonRouterOutlet>
-            <Route path="/home" component={Home} exact />
-            <Route path="/tags/:id/" component={TagDetail} />
-            <Route path="/summary/" component={SummaryOverview} />
-            <Route path="/expenditures/" component={Expenditures} />
-            <Redirect from="/" to="/home" exact />
-          </IonRouterOutlet>
-        </IonReactRouter>
-      </IonApp>
-    );
-  } else {
-    return (
-      <IonApp>
-        <IonPage>
-          <Login onSave={(username, password) => setCredentials({ username, password })} />
-        </IonPage>
-      </IonApp>
-    );
-  }
+    if (credentials.username && credentials.password) {
+        return (
+            <IonApp>
+                <IonReactRouter>
+                    <IonRouterOutlet>
+                        <Route path="/home" component={Home} exact />
+                        <Route path="/tags/:id/" component={TagDetail} />
+                        <Route path="/summary/" component={SummaryOverview} />
+                        <Route path="/expenditures/" component={Expenditures} />
+                        <Redirect from="/" to="/home" exact />
+                    </IonRouterOutlet>
+                </IonReactRouter>
+            </IonApp>
+        );
+    } else {
+        return (
+            <IonApp>
+                <IonPage>
+                    <Login onSave={(username, password) => setCredentials({ username, password })} />
+                </IonPage>
+            </IonApp>
+        );
+    }
 }
