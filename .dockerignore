@@ -1,2 +1,2 @@
-backend/.__pycache__/**
-backend/expenditures/.__pycache__/**
+.__pycache__/**
+expenditures/.__pycache__/**
