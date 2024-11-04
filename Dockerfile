@@ -13,8 +13,9 @@ RUN pip install poetry
 
 RUN mkdir -p /usr/local/expenditures
 WORKDIR /usr/local/expenditures
+COPY pyproject.toml poetry.lock /usr/local/expenditures/
+RUN poetry install
 COPY ./ /usr/local/expenditures/
 COPY --from=frontend /frontend/build /usr/local/expenditures/frontend/build
-RUN poetry install --directory backend
 
-CMD ["poetry", "--directory", "backend", "run", "python", "expenditures/server.py"]
+CMD ["poetry", "run", "python", "expenditures/server.py"]
