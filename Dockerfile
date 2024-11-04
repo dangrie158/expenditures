@@ -6,7 +6,7 @@ RUN npm install
 COPY frontend /frontend
 RUN npm run build
 
-from python:3.11
+from python:3.12
 
 RUN apt update && apt install build-essential -y
 RUN pip install poetry
