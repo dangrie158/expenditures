@@ -1,9 +1,8 @@
 import datetime
 from collections import Counter
 
-from app import db, get_app
-from flask import jsonify, request
-from models import (
+from expenditures.app import db, get_app
+from expenditures.models import (
     Expenditure,
     ExpenditureSchema,
     SummarySchema,
@@ -11,6 +10,7 @@ from models import (
     TagSchema,
     tags_to_expenditures,
 )
+from flask import jsonify, request
 from sqlalchemy import func
 
 app = get_app()

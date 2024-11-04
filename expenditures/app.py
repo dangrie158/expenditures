@@ -21,11 +21,14 @@ ma = Marshmallow(_app)
 
 
 def setup_app():
-    from auth import Authenticator
+    import importlib
+
+    from expenditures.auth import Authenticator
     from flask_cors import CORS
 
     CORS(_app, resources={r"/*": {"origins": "*"}})
     Authenticator(_app, db, enforce_paths=(re.compile(r".*/api/.*"),))
+    importlib.import_module("expenditures.routes")
 
 
 _initialized = False

@@ -2,7 +2,7 @@
 set -e
 
 poetry env use python
-FLASK_ENV=development poetry run python expenditures/server.py &
+FLASK_ENV=development poetry run python -m expenditures &
 P1=$!
 cd frontend/
 ionic serve --external &

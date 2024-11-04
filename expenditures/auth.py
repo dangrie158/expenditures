@@ -1,10 +1,10 @@
 from base64 import b64encode
 from hashlib import sha256
 
-from app import db
+from expenditures.app import db
+from expenditures.models import User
 from flask import request
 from flask_basicauth import BasicAuth
-from models import User
 
 
 class Authenticator(BasicAuth):

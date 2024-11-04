@@ -1,6 +1,6 @@
 import datetime
 
-from app import db, ma
+from expenditures.app import db, ma
 from sqlalchemy import event
 
 tags_to_expenditures = db.Table(

@@ -18,4 +18,4 @@ RUN poetry install
 COPY ./ /usr/local/expenditures/
 COPY --from=frontend /frontend/build /usr/local/expenditures/frontend/build
 
-CMD ["poetry", "run", "python", "expenditures/server.py"]
+CMD ["poetry", "run", "python", "-m", "expenditures"]

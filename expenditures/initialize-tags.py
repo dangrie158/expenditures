@@ -1,5 +1,5 @@
-from app import db
-from models import Expenditure, Tag
+from expenditures.app import db
+from expenditures.models import Expenditure, Tag
 
 for e in Expenditure.query.all():
     for t in Tag.query.all():

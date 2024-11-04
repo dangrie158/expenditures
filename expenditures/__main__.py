@@ -2,7 +2,7 @@
 
 from os import environ
 
-from app import get_app
+from expenditures.app import get_app
 
 if __name__ == "__main__":
 
