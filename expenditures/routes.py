@@ -3,7 +3,14 @@ from collections import Counter
 
 from app import db, get_app
 from flask import jsonify, request
-from models import *
+from models import (
+    Expenditure,
+    ExpenditureSchema,
+    SummarySchema,
+    Tag,
+    TagSchema,
+    tags_to_expenditures,
+)
 from sqlalchemy import func
 
 app = get_app()

@@ -1,11 +1,10 @@
-from hashlib import sha256
 from base64 import b64encode
+from hashlib import sha256
 
+from app import db
 from flask import request
 from flask_basicauth import BasicAuth
-
 from models import User
-from app import db
 
 
 class Authenticator(BasicAuth):
@@ -33,11 +32,7 @@ class Authenticator(BasicAuth):
         return (
             # make sure to always allow OPTIONS requests for preflight-checks
             request.method == "OPTIONS"
-            or (
-                auth
-                and auth.type == "basic"
-                and self.check_credentials(auth.username, auth.password)
-            )
+            or (auth and auth.type == "basic" and self.check_credentials(auth.username, auth.password))
         )
 
     def check_credentials(self, username, password):

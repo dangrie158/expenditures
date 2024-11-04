@@ -8,17 +8,17 @@ from flask_sqlalchemy import SQLAlchemy
 _app = Flask(
     __name__,
     static_url_path="",
-    static_folder="../../frontend/build",
+    static_folder="../frontend/build",
 )
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 _app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-    os.environ.get("EXPEDITURES_DB_PATH", "/var/expenditures/"),
-    "db.sqlite"
+    os.environ.get("EXPEDITURES_DB_PATH", "/var/expenditures/"), "db.sqlite"
 )
 _app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(_app)
 ma = Marshmallow(_app)
+
 
 def setup_app():
     from auth import Authenticator
@@ -27,7 +27,9 @@ def setup_app():
     CORS(_app, resources={r"/*": {"origins": "*"}})
     Authenticator(_app, db, enforce_paths=(re.compile(r".*/api/.*"),))
 
+
 _initialized = False
+
 
 def get_app():
     global _initialized

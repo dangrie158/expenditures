@@ -1,5 +1,5 @@
 from app import db
-from models import *
+from models import Expenditure, Tag
 
 for e in Expenditure.query.all():
     for t in Tag.query.all():
@@ -40,8 +40,8 @@ for e in Expenditure.query.all():
     if not selected_tags:
         new_tags = [int(n) for n in default_tags]
     else:
-        new_tags = selected_tags.split(",")
-        new_tags = [int(n) for n in new_tags]
+        new_tags_str = selected_tags.split(",")
+        new_tags = [int(n) for n in new_tags_str]
 
     new_objects = [Tag.query.get(id) for id in new_tags]
     print(f"objects now tagged with {[n.name for n in new_objects]}")

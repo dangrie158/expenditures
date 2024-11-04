@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "expenditures"
+version = "0.1.0"
+description = ""
+authors = ["Daniel Grießhaber <griesshaber@hdm-stuttgart.de>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+Flask-Cors = "^5.0.0"
+Flask = "^3.0.3"
+flask-marshmallow = "^1.2.1"
+flask-sqlalchemy = "^3.1.1"
+Flask-BasicAuth = "^0.2.0"
+marshmallow-sqlalchemy = "^1.1.0"
+setuptools = "^75.3.0"
+
+[tool.poetry.dev-dependencies]
+mypy = "^1.13.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+src_paths= ["backend", "e2e"]
+
+[tool.ruff]
+line-length = 130
+exclude = [
+    ".git",
+    "__pycache__",
+    "frontend",
+    "notebooks",
+    ".mypy_cache",
+    ".venv",
+]
+ignore = ["E722"]
+extend-ignore = [
+    "E203", # whitespace before ':'
+
+    "E501", # line too long
+]
