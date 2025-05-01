@@ -70,11 +70,18 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
         });
     };
 
-    const handleChangeReason = (event: ChangeEvent<HTMLInputElement>) => {
+    const handleChangeReason = async (event: ChangeEvent<HTMLInputElement>) => {
         props.onEdit({
             ...props.item,
             reason: event.target.value ?? "",
         });
+
+        const response = await authorizedFetch<Tag[]>(`${API_HOST}/api/shops/${event.target.value}`);
+        if (response !== undefined && props.item.tags.length === 0) {
+            response.forEach((tag) => {
+                handleToggleTag(tag);
+            });
+        }
     };
 
     const handleChangeUser = (event: CustomEvent<SegmentChangeEventDetail>) => {

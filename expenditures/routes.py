@@ -152,6 +152,15 @@ def get_shops():
     result = Counter([expenditure.reason for expenditure in all_expenditures])
     return jsonify(sorted(result.keys(), key=lambda k: result[k], reverse=True))
 
+@app.route("/api/shops/<name>", methods=["GET"])
+def get_shopstags(name):
+    all_expenditures = Expenditure.query.filter(Expenditure._reason == name).all()
+    result = Counter([tuple(expenditure.tags) for expenditure in all_expenditures])
+    most_common = result.most_common(1)
+    if len(most_common) == 0:
+        return jsonify([])
+    return jsonify(TagSchema(many=True).dump(most_common[0][0]))
+
 
 @app.route("/api/tags/<id>", methods=["GET"])
 def tag_detail(id):

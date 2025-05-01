@@ -12,10 +12,12 @@ services:
         environment:
             FLASK_ENV: development
             EXPEDITURES_DB_PATH: /app/expenditures/
+            PYTHONUNBUFFERED: 1
         volumes:
             - ./expenditures/:/app/expenditures
         ports:
             - 5100:5100
+        restart: unless-stopped
     frontend:
         build:
             context: frontend
