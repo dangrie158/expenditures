@@ -59,13 +59,14 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
     };
 
     const finishChangeAmount = (callback?: (newItem: Expenditure) => void) => {
+        const newAmount = Number.parseFloat(amount.replace(",", "."));
         props.onEdit({
             ...props.item,
-            amount: Number.parseFloat(amount),
+            amount: newAmount,
         });
         callback?.({
             ...props.item,
-            amount: Number.parseFloat(amount),
+            amount: newAmount,
         });
     };
 
@@ -247,8 +248,8 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
                                         fill={itemHasTag(tag) ? "solid" : "outline"}
                                         size="small"
                                         style={{ width: "40%", margin: "0.4rem calc(20%/4)" }}>
+                                        <NamedIcon name={tag.icon} style={{ marginRight: "0.5rem" }} />
                                         <IonLabel>{tag.name}</IonLabel>
-                                        <NamedIcon name={tag.icon} />
                                     </IonButton>
                                 );
                             })}
