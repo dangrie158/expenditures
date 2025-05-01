@@ -11,7 +11,8 @@ from expenditures.models import (
     tags_to_expenditures,
 )
 from flask import jsonify, request
-from sqlalchemy import func
+from sqlalchemy import select, func
+from sqlalchemy.orm import aliased
 
 app = get_app()
 
@@ -145,21 +146,21 @@ def get_tags():
     result = TagSchema(many=True).dump(all_tags)
     return jsonify(result)
 
-
 @app.route("/api/shops", methods=["GET"])
 def get_shops():
-    all_expenditures = Expenditure.query.all()
-    result = Counter([expenditure.reason for expenditure in all_expenditures])
-    return jsonify(sorted(result.keys(), key=lambda k: result[k], reverse=True))
+    tag_exists = aliased(Tag)
 
-@app.route("/api/shops/<name>", methods=["GET"])
-def get_shopstags(name):
-    all_expenditures = Expenditure.query.filter(Expenditure._reason == name).all()
-    result = Counter([tuple(expenditure.tags) for expenditure in all_expenditures])
-    most_common = result.most_common(1)
-    if len(most_common) == 0:
-        return jsonify([])
-    return jsonify(TagSchema(many=True).dump(most_common[0][0]))
+    query = (
+        select(Expenditure._reason, Tag.id)
+        .join(tags_to_expenditures, tags_to_expenditures.columns.expenditure_id == Expenditure.id)
+        .filter(db.session.query(tag_exists).filter(tag_exists.id == tags_to_expenditures.columns.tag_id).exists())
+        .join(Tag, tags_to_expenditures.columns.tag_id == Tag.id)
+        .group_by(Expenditure._reason)
+        .order_by(func.count().desc())
+    )
+
+    result = db.session.execute(query).all()
+    return jsonify([(*entry, ) for entry in result])
 
 
 @app.route("/api/tags/<id>", methods=["GET"])

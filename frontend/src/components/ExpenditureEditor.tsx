@@ -36,7 +36,7 @@ type ExpenditureEditorProps = {
 export default function ExpenditureEditor(props: ExpenditureEditorProps) {
     const [tags, setTags] = useState<Tag[]>([]);
     const [isSaving, setIsSaving] = useState(false);
-    const [knownShops, setKnownShops] = useState([]);
+    const [knownShops, setKnownShops] = useState<[string, number][]>([]);
     const authorizedFetch = useAuthorizedFetch();
     useEffect(() => {
         doRefresh();
@@ -71,17 +71,18 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
     };
 
     const handleChangeReason = async (event: ChangeEvent<HTMLInputElement>) => {
+        const newReason = event.target.value;
+        const knownShop = knownShops.find((shop) => shop[0] === newReason);
+        let tag: Tag | undefined = undefined;
+        if (knownShop !== undefined) {
+            tag = tags.find((tag) => tag.id === knownShop[1]);
+        }
+
         props.onEdit({
             ...props.item,
-            reason: event.target.value ?? "",
+            tags: props.item.tags.length === 0 && tag !== undefined ? [tag] : props.item.tags,
+            reason: newReason ?? "",
         });
-
-        const response = await authorizedFetch<Tag[]>(`${API_HOST}/api/shops/${event.target.value}`);
-        if (response !== undefined && props.item.tags.length === 0) {
-            response.forEach((tag) => {
-                handleToggleTag(tag);
-            });
-        }
     };
 
     const handleChangeUser = (event: CustomEvent<SegmentChangeEventDetail>) => {
@@ -214,7 +215,7 @@ export default function ExpenditureEditor(props: ExpenditureEditorProps) {
                     </IonItem>
                     <datalist id="knownShops">
                         {knownShops.map((shop) => (
-                            <option key={shop} value={shop}></option>
+                            <option key={shop[0]} value={shop[0]}></option>
                         ))}
                     </datalist>
                     <IonItem>
