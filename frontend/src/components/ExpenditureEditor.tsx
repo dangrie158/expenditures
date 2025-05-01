@@ -18,7 +18,6 @@ import {
     DatetimeChangeEventDetail,
     InputInputEventDetail,
 } from "@ionic/react";
-import { InputChangeEventDetail } from "@ionic/core";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { FormEvent } from "react";
 import { API_HOST, useAuthorizedFetch } from "../backend-hooks";

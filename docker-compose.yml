@@ -1,0 +1,34 @@
+services:
+    backend:
+        build:
+            dockerfile_inline: |
+                FROM python:3.13-slim
+                WORKDIR /app
+                RUN --mount=type=cache,target=/root/.cache/pip pip install poetry
+                COPY pyproject.toml poetry.lock ./
+                RUN --mount=type=cache,target=/root/.cache/pip poetry install --no-root
+        command: |
+            poetry run python -m expenditures
+        environment:
+            FLASK_ENV: development
+            EXPEDITURES_DB_PATH: /app/expenditures/
+        volumes:
+            - ./expenditures/:/app/expenditures
+        ports:
+            - 5100:5100
+    frontend:
+        build:
+            context: frontend
+            dockerfile_inline: |
+                FROM node:20
+                WORKDIR /app
+                RUN --mount=type=cache,target=/root/.npm npm install -g @ionic/cli
+                COPY package.json package-lock.json ./
+                RUN --mount=type=cache,target=/root/.npm npm install
+                COPY . .
+        command: |
+            ionic serve --external --port 8080
+        volumes:
+            - ./frontend/:/app
+        ports:
+            - 8080:8080
