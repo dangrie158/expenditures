@@ -14,7 +14,7 @@ RUN pip install poetry
 RUN mkdir -p /usr/local/expenditures
 WORKDIR /usr/local/expenditures
 COPY pyproject.toml poetry.lock /usr/local/expenditures/
-RUN poetry install
+RUN poetry install --no-root
 COPY ./ /usr/local/expenditures/
 COPY --from=frontend /frontend/build /usr/local/expenditures/frontend/build
 
